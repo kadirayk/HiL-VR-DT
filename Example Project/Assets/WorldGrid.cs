@@ -32,7 +32,7 @@ public class WorldGrid : MonoBehaviour
 			{
 				//for(float y=0; y<0.2; y += cellSize)
 				//{
-				var point = GetNearestPointOnGrid(new Vector3(x, 0f, z));
+				var point = GetNearestPointOnGrid(new Vector3(x, 0.8f, z));
 				Gizmos.DrawSphere(point, 0.01f);
 				//}
 			}

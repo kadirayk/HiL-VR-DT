@@ -76,12 +76,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	public void Solve()
 	{
 		string problem = createPDDLProblem();
-		System.IO.File.WriteAllText(@"C:\PDDLSolver\problem.pddl", problem);
+		System.IO.File.WriteAllText(@"C:\Users\kadiray\PDDLSolver\problem.pddl", problem);
 
 		System.Diagnostics.Process process = new System.Diagnostics.Process();
 		var startInfo = new System.Diagnostics.ProcessStartInfo
 		{
-			WorkingDirectory = @"C:\PDDLSolver",
+			WorkingDirectory = @"C:\Users\kadiray\PDDLSolver",
 			WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
 			FileName = "cmd.exe",
 			Arguments = "/C java -jar PDDLSolver.jar domain.pddl problem.pddl"
@@ -90,7 +90,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		process.Start();
 		System.Threading.Thread.Sleep(2000);
 		process.Close();
-		string[] lines = System.IO.File.ReadAllLines(@"C:\PDDLSolver\solution.txt");
+		string[] lines = System.IO.File.ReadAllLines(@"C:\Users\kadiray\PDDLSolver\solution.txt");
 		foreach (string line in lines)
 		{
 			Debug.Log(line);
@@ -223,11 +223,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	// Start is called before the first frame update
 	void Start()
 	{
-		//stationaryObjects = GameObject.FindGameObjectsWithTag("Stationary");
-		//baseRotator = GameObject.Find("magician_link_1");
-		//lowerArm = GameObject.Find("magician_link_2");
-		//upperArm = GameObject.Find("magician_link_3");
-		//hand = GameObject.Find("magician_link_4");
+		stationaryObjects = GameObject.FindGameObjectsWithTag("Stationary");
+		baseRotator = GameObject.Find("magician_link_1");
+		lowerArm = GameObject.Find("magician_link_2");
+		upperArm = GameObject.Find("magician_link_3");
+		hand = GameObject.Find("magician_link_4");
 	}
 
 	// Update is called once per frame

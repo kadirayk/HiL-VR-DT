@@ -62,21 +62,22 @@ public class DobotController : MonoBehaviour
 		{
 			CubeCounter++;
 			Cube.name = "Cube" + CubeCounter;
-			Instantiate(Cube, WorldGrid.grid[8, 7, 0] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
+			Instantiate(Cube, WorldGrid.grid[8, 12, 8] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
+			Debug.Log("Cube at A");
 		}
 
 		if (Input.GetKeyDown(KeyCode.B))
 		{
 			CubeCounter++;
 			Cube.name = "Cube" + CubeCounter;
-			Instantiate(Cube, WorldGrid.grid[9, 7, 0] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
+			Instantiate(Cube, WorldGrid.grid[9, 12, 8] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
 		}
 
 		if (Input.GetKeyDown(KeyCode.C))
 		{
 			CubeCounter++;
 			Cube.name = "Cube" + CubeCounter;
-			Instantiate(Cube, WorldGrid.grid[10, 7, 0] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
+			Instantiate(Cube, WorldGrid.grid[10, 12, 8] + new Vector3(0.05f, 0.01f, 0.05f), Quaternion.identity);
 		}
 
 		if (Input.GetKeyDown(KeyCode.S))
