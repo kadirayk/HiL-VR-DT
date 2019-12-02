@@ -1,0 +1,1 @@
+move(cube1, posa, posc)

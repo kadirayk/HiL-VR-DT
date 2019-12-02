@@ -1,0 +1,10 @@
+(define (problem dobot01)
+(:domain CUBES)
+(:objects cube1 cube2 - cube
+          posA posB posC - position)
+(:init (at cube1 posA)
+       (at cube2 posB)
+       (free posC))
+(:goal (and (at cube1 posC)
+            (at cube2 posA)))
+)
