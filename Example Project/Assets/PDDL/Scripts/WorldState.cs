@@ -114,17 +114,19 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	{
 		if (pos.Equals("posA", System.StringComparison.InvariantCultureIgnoreCase))
 		{
-			actionTarget[0] = 210;
-			actionTarget[1] = 59;
-			actionTarget[2] = 38;
+			actionTarget[0] = -34;
+			actionTarget[1] = 56;
+			actionTarget[2] = -25;
 			//210 59 38
+			// -37 56 -25 
 		}
 		else if (pos.Equals("posC", System.StringComparison.InvariantCultureIgnoreCase))
 		{
-			actionTarget[0] = 172;
-			actionTarget[1] = 48;
-			actionTarget[2] = 38;
+			actionTarget[0] = 4;
+			actionTarget[1] = 37;
+			actionTarget[2] = 32;
 			//172 48 38
+			// 4 37 32
 		}
 		else if (pos.Equals("reset")) 
 		{
