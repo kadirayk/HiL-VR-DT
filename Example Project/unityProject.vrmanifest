@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.exampleproject.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "C:\\Users\\kadiray\\Example Project\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "Example Project [Testing]"
+        }
+      }
+    }
+  ]
+}
