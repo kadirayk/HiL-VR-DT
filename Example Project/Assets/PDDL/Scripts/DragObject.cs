@@ -26,11 +26,12 @@ public class DragObject : MonoBehaviour
 	void OnMouseDrag()
 	{
 		transform.position = GetMouseWorldPos() + mOffset;
+		InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+		ik.DoIK();
 	}
 
 	private void OnMouseUp()
 	{
-		InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
-		ik.DoIK();
+		
 	}
 }
