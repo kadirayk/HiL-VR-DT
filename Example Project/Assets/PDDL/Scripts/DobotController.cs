@@ -107,6 +107,23 @@ public class DobotController : MonoBehaviour
 			Debug.Log("upper:" + UpperArm.transform.rotation.eulerAngles.x);
 		}
 
+		if (Input.GetKeyDown(KeyCode.R)) {
+			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
+			mr.StartRecording();
+		}
+
+		if (Input.GetKeyDown(KeyCode.P))
+		{
+			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
+			mr.StopRecording();
+		}
+
+		if (Input.GetKeyDown(KeyCode.O))
+		{
+			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
+			mr.Replay();
+		}
+
 		/*
 		BaseRotator.transform.Rotate(0, 1, 0);
 		if (plus) {

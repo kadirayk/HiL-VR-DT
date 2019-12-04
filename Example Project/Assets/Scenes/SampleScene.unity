@@ -139,7 +139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfabfc311bf52c24f94beed60a849002, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  l1_arm: {fileID: 97439489}
+  baseRotator: {fileID: 97439489}
   l2_arm: {fileID: 2259322}
   l3_arm: {fileID: 2259321}
   hand: {fileID: 2259320}
@@ -166,6 +166,23 @@ MonoBehaviour:
   EndEffector: {fileID: 1934599244}
   SuctionCup: {fileID: 1734519615}
   Cube: {fileID: 1284280202469825767, guid: a8be24853b558ca46b0ed5cee6359e45, type: 3}
+--- !u!114 &1552964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1552959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd748275ce4bffd4e90a54174abddbef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseRotator: {fileID: 97439489}
+  l2_arm: {fileID: 2259322}
+  l3_arm: {fileID: 2259321}
+  hand: {fileID: 2259320}
+  target: {fileID: 1994403950}
 --- !u!1001 &2259318
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1020,13 +1037,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.1221141, y: 0.6787189, z: -0.11594485, w: 0.71483254}
-  m_LocalPosition: {x: 0.492, y: 1.088, z: 1.058}
+  m_LocalRotation: {x: -0, y: 0.75279033, z: -0, w: 0.6582604}
+  m_LocalPosition: {x: 0.532, y: 1.008, z: 1.222}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 19.388, y: 87.031006, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 97.665, z: 0}
 --- !u!1 &1186282219
 GameObject:
   m_ObjectHideFlags: 0
