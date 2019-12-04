@@ -8,7 +8,7 @@ public class collisionDetection : MonoBehaviour
 
 
 
-	/*void OnCollisionStay(Collision collision)
+	void OnCollisionStay(Collision collision)
 	{
 		Debug.Log("col");
 		if (!isHolding && Input.GetKeyDown(KeyCode.Space))
@@ -25,25 +25,25 @@ public class collisionDetection : MonoBehaviour
 			collision.gameObject.GetComponent<Rigidbody>().isKinematic = false;
 			isHolding = false;
 		}
-	}*/
+	}
 
-	//private void Update()
-	//{
-	//	if (isHolding && Input.GetKeyDown(KeyCode.Space))
-	//	{
-	//		this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic = false;
-	//		this.transform.DetachChildren();
-	//		isHolding = false;
-	//	}
-	//}
+	private void Update()
+	{
+		if (isHolding && Input.GetKeyDown(KeyCode.Space))
+		{
+			this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic = false;
+			this.transform.DetachChildren();
+			isHolding = false;
+	    }
+	}
 
-	//void OnCollisionEnter(Collision collision)
-	//{
-	//	if (!isHolding)
-	//	{
-	//		collision.gameObject.transform.parent = this.transform;
-	//		collision.gameObject.GetComponent<Rigidbody>().isKinematic = true;
-	//		isHolding = true;
-	//	}
-	//}
+	void OnCollisionEnter(Collision collision)
+	{
+		if (!isHolding)
+		{
+			collision.gameObject.transform.parent = this.transform;
+			collision.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+			isHolding = true;
+		}
+	}
 }
