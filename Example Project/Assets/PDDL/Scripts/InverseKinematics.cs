@@ -5,7 +5,13 @@ using System;
 
 public class InverseKinematics : MonoBehaviour
 {
-	public Transform l1_arm;
+	private float baseRotatorMinAngle = -90;
+	private float baseRotatorMaxAngle = 90;
+	private float l2_armMinAngle = 0;
+	private float l2_armMaxAngle = 85;
+	private float l3_armMinAngle = -10;
+	private float l3_armMaxAngle = 95;
+	public Transform baseRotator;
 	public Transform l2_arm;
 	public Transform l3_arm;
 	public Transform hand;
@@ -15,51 +21,97 @@ public class InverseKinematics : MonoBehaviour
 	private float l1;
 	private float l2;
 	private float l3;
-	private float x_target;
-	private float y_target;
-	private float z_target;
+	private float endEffectorOffset_z = 0.06f; // end effector is 0.006 away from the end of l3
+	private float endEffectorOffset_y = 0.06f; // end effector is 0.006 lower from the end of l3
 
+	// Start is called before the first frame update
+	void Start()
+	{
+		l1 = Vector3.Distance(baseRotator.position, l2_arm.position);
+		l2 = Vector3.Distance(l2_arm.position, l3_arm.position);
+		l3 = Vector3.Distance(l3_arm.position, hand.position);
 
-	//private Vector3 mOffset;
-	//private float mZCoord;
+	}
 
-	//void OnMouseDown()
-	//{
-	//	mZCoord = Camera.main.WorldToScreenPoint(target.transform.position).z;
-	//	mOffset = target.transform.position - GetMouseWorldPos();
-	//}
+	// Update is called once per frame
+	void Update()
+	{
 
-	//private Vector3 GetMouseWorldPos()
-	//{
-	//	Vector3 mousePoint = Input.mousePosition;
-
-	//	mousePoint.z = mZCoord;
-
-	//	return Camera.main.ScreenToWorldPoint(mousePoint);
-	//}
-
-	//void OnMouseDrag()
-	//{
-	//	target.transform.position = GetMouseWorldPos() + mOffset;
-	//}
+	}
 
 	public void DoIK()
 	{
-		x_target = target.position.x - l1_arm.position.x;
-		y_target = target.position.y - l1_arm.position.y;
-		z_target = target.position.z - l1_arm.position.z;
+		HandleBaseRotator();
+		HandleL2AndL3();
+	}
 
-		double baseRotatorAngle = Math.Atan(x_target / z_target) * (180 / Math.PI);
-		//l1_arm.Rotate(new Vector3(0, (float)baseRotatorAngle,0));
-		l1_arm.transform.localRotation = Quaternion.Euler(0, (float)baseRotatorAngle, 0);
-		Debug.Log("base:" + baseRotatorAngle);
-		y_target += 0.06f;
-		z_target -= 0.06f;
+	private float radianToGrad(double radian)
+	{
+		// 1rad * 180/pi
+		return (float)(radian * (180 / Math.PI));
+	}
+
+
+	private void HandleBaseRotator()
+	{
+		// find the distance of target in X (left-right) and Z(forward-backward) axises to robot base
+		float x_target = target.position.x - baseRotator.position.x;
+		float z_target = target.position.z - baseRotator.position.z;
+		// find arctan of x and z
+		// result of Atan is in radians; so convert it to degree
+		float baseRotatorAngle = radianToGrad(Math.Atan(x_target / z_target));
+		// change localRotation of the baseRotator
+		if (baseRotatorAngle >= baseRotatorMinAngle && baseRotatorAngle <= baseRotatorMaxAngle)
+		{
+			baseRotator.transform.localRotation = Quaternion.Euler(0, baseRotatorAngle, 0);
+		}
+	}
+
+	private void HandleL2AndL3()
+	{
+		//                       @@#,                                                     
+		//                     *@    .#@@@%,                                              
+		//                    .@. l3Angle   *&@@@*
+		// 					 .@                    *&@@@*  l3
+		//                   @                           .%@@@%.
+		//                  @.                                  .#@@@%,                   
+		//                 @*											*@@@&,             
+		//                @*                                                  ,&@@@*
+		//               @.                                                         ,%@@@ y_target 
+		//          l2  @.                                                        ,@@@# @ 
+		//            .@.                                                   ,@@@#       @ 
+		//            @*											   *@@@#            @ 
+		//           @                                           .&@@%.                 @ 
+		//          @.                                      *&@@#                       @ 
+		//        .@.                                 ,&@@%                             @ 
+		//        @*                             ,@@@#                                  @ 
+		//       @.                        ,&@@#.  e                                    @ 
+		//      @*					   *@@@#                                            @ 
+		//     @*  l2Angle=b+c  .&@@%.                                                  @ 
+		//    @#           ,&@@#                                                        @ 
+		//   @.  b   ,&@@%                                                              @ 
+		//  @*  ,&@@   c                                                                @ 
+		// @@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@ z_target
+
+
+		// find the distance of target in X (left-right) Z (forward-backward) Y (up-down) axises to robot base
+		float x_target = target.position.x - baseRotator.position.x;
+		float y_target = target.position.y - baseRotator.position.y;
+		float z_target = target.position.z - baseRotator.position.z;
+
+		// add offset to target to match end effector position
+		y_target += endEffectorOffset_y;
+		z_target -= endEffectorOffset_z;
+
+		// find l3Angle
 		double e = Math.Sqrt(Math.Pow(y_target, 2) + Math.Pow(z_target, 2));
-		double l3Angle = Math.Acos((Math.Pow(l2, 2) + Math.Pow(l3, 2) - Math.Pow(e, 2)) / (2 * l2 * l3)) * (180 / Math.PI);
-		double c = Math.Atan(y_target / z_target) * (180 / Math.PI);
-		double b = Math.Acos((Math.Pow(l2, 2) + Math.Pow(e, 2) - Math.Pow(l3, 2)) / (2 * l2 * e)) * (180 / Math.PI);
-		double l2Angle = c + b;
+		float l3Angle = radianToGrad(Math.Acos((Math.Pow(l2, 2) + Math.Pow(l3, 2) - Math.Pow(e, 2)) / (2 * l2 * l3)));
+
+		float c = radianToGrad(Math.Atan(y_target / z_target));
+		float b = radianToGrad(Math.Acos((Math.Pow(l2, 2) + Math.Pow(e, 2) - Math.Pow(l3, 2)) / (2 * l2 * e)));
+		float l2Angle = c + b;
+
+		// convert absolute angles to relative angles
 		if (l2Angle < 0)
 		{
 			l2Angle = 90 + l2Angle;
@@ -69,68 +121,19 @@ public class InverseKinematics : MonoBehaviour
 			l2Angle = 90 - l2Angle;
 		}
 		l3Angle = 90 - l3Angle;
-		//l2_arm.Rotate(new Vector3((float)l2Angle, 0, 0));
-		//l3_arm.Rotate(new Vector3((float)l3Angle, 0, 0));
-		l2_arm.transform.localRotation = Quaternion.Euler((float)l2Angle, 0, 0);
-		l3_arm.transform.localRotation = Quaternion.Euler((float)l3Angle, 0, 0);
-		hand.transform.localRotation = Quaternion.Euler((float)(-l2Angle-l3Angle), 0, 0);
-		Debug.Log("l2:" + l2Angle + " l3:" + l3Angle);
+		// apply rotations
+		float handRotation = 0f;
+		if (l2Angle >= l2_armMinAngle && l2Angle <= l2_armMaxAngle)
+		{
+			l2_arm.transform.localRotation = Quaternion.Euler(l2Angle, 0, 0);
+		}
+		if (l3Angle >= l3_armMinAngle && l3Angle <= l3_armMaxAngle)
+		{
+			l3_arm.transform.localRotation = Quaternion.Euler(l3Angle, 0, 0);
+		}
+		// keep hand always parrallel to ground
+		handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
+		hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
 	}
 
-
-	// Start is called before the first frame update
-	void Start()
-	{
-		l1 = Vector3.Distance(l1_arm.position, l2_arm.position);
-		l2 = Vector3.Distance(l2_arm.position, l3_arm.position);
-		l3 = Vector3.Distance(l3_arm.position, hand.position);
-		//Debug.Log("l1=" + l1 + " l2=" + l2 + " l3=" + l3);
-		//Debug.Log("x:" + x_target + " y:" + y_target + " z:" + z_target);
-		//Debug.Log("fi:" + Math.Atan(x_target / z_target) * (180 / Math.PI));
-
-		//double e = Math.Sqrt(Math.Pow(y_target,2) + Math.Pow(z_target,2));
-		//double beta = Math.Acos((Math.Pow(l2,2) + Math.Pow(l3,2) - Math.Pow(e,2))/(2*l2*l3))*(180 / Math.PI);
-		//double c = Math.Atan(y_target / z_target)* (180 / Math.PI);
-		//double b = Math.Acos((Math.Pow(l2,2) + Math.Pow(e,2) - Math.Pow(l3,2)) / (2*l2*e))* (180 / Math.PI);
-		//double alpha = c + b;
-		////double q2 = Math.Acos((Math.Pow(z_target, 2) + Math.Pow(y_target, 2) - Math.Pow(l2, 2) - Math.Pow(l3, 2)) / (2*l2*l3));
-		////q2 = q2 * (180 / Math.PI);
-		////double q1 = Math.Atan(y_target / z_target) + Math.Atan((l3*Math.Sin(q2))/(l2+l3*Math.Cos(q2)));
-
-
-		////q1 = q1 * (180 / Math.PI);
-		////q1 = 90 - q1;
-		////q2 = 90 - q2;
-		////beta = 90 - beta;
-		////alpha = 90 + alpha;
-		//if (alpha < 0) {
-		//	alpha = 90 + alpha;
-		//} else {
-		//	alpha = 90 - alpha;
-		//}
-		//beta = 90 - beta;
-
-		//Debug.Log("alpha:" + alpha + " beta:" + beta);
-		//l3_arm.Rotate(new Vector3((float)q2, 0, 0));
-		//l2_arm.Rotate(new Vector3((float)q1, 0, 0));
-		//double q2 = Math.Acos((Math.Pow(z_target, 2) + Math.Pow(y_target, 2) - Math.Pow(l2, 2) - Math.Pow(l3, 2)) / (2 * l2 * l3));
-		//q2 = q2 * (180 / Math.PI);
-		//double q1 = Math.Atan(y_target / z_target) + Math.Atan((l3 * Math.Sin(q2)) / (l2 + l3 * Math.Cos(q2)));
-		//q1 = q1 * (180 / Math.PI);
-		//Debug.Log("q2:" + q2);
-		//Debug.Log("q1:" + q1);
-		//double c2 = Math.Pow(x_target, 2) + Math.Pow(z_target, 2);
-		//double e2 = c2 + Math.Pow((y_target - l1), 2); // l1 might be l2
-		//double sigma = Math.Acos((e2-Math.Pow(l2,2)-Math.Pow(l3,2))/(2*l2*l3));
-		//double alpha = Math.Atan((y_target - l1) / (Math.Sqrt(c2)));
-		//double beta = Math.Acos((Math.Pow(l2,2)+e2-Math.Pow(l3,2)) / (2*l2*Math.Sqrt(e2)));
-		//Debug.Log("s:" + sigma* (180 / Math.PI) + " a:" + (alpha+beta)* (180 / Math.PI));
-
-	}
-
-	// Update is called once per frame
-	void Update()
-	{
-
-	}
 }
