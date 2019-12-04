@@ -9,6 +9,8 @@ public class InverseKinematics : MonoBehaviour
 	public Transform l2_arm;
 	public Transform l3_arm;
 	public Transform hand;
+	public Transform suctionCup;
+	public Transform endEffector;
 	public Transform target;
 	private float l1;
 	private float l2;
@@ -51,7 +53,8 @@ public class InverseKinematics : MonoBehaviour
 		//l1_arm.Rotate(new Vector3(0, (float)baseRotatorAngle,0));
 		l1_arm.transform.localRotation = Quaternion.Euler(0, (float)baseRotatorAngle, 0);
 		Debug.Log("base:" + baseRotatorAngle);
-
+		y_target += 0.06f;
+		z_target -= 0.06f;
 		double e = Math.Sqrt(Math.Pow(y_target, 2) + Math.Pow(z_target, 2));
 		double l3Angle = Math.Acos((Math.Pow(l2, 2) + Math.Pow(l3, 2) - Math.Pow(e, 2)) / (2 * l2 * l3)) * (180 / Math.PI);
 		double c = Math.Atan(y_target / z_target) * (180 / Math.PI);
@@ -70,6 +73,7 @@ public class InverseKinematics : MonoBehaviour
 		//l3_arm.Rotate(new Vector3((float)l3Angle, 0, 0));
 		l2_arm.transform.localRotation = Quaternion.Euler((float)l2Angle, 0, 0);
 		l3_arm.transform.localRotation = Quaternion.Euler((float)l3Angle, 0, 0);
+		hand.transform.localRotation = Quaternion.Euler((float)(-l2Angle-l3Angle), 0, 0);
 		Debug.Log("l2:" + l2Angle + " l3:" + l3Angle);
 	}
 

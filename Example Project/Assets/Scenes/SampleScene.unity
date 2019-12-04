@@ -143,6 +143,8 @@ MonoBehaviour:
   l2_arm: {fileID: 2259322}
   l3_arm: {fileID: 2259321}
   hand: {fileID: 2259320}
+  suctionCup: {fileID: 16930704}
+  endEffector: {fileID: 1934599245}
   target: {fileID: 1186282220}
 --- !u!114 &1552962
 MonoBehaviour:
@@ -265,6 +267,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5454366071887868941, guid: a74a42d8eec91f24dbe052913924d353,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 5454366072772589144, guid: a74a42d8eec91f24dbe052913924d353,
         type: 3}
@@ -419,6 +426,12 @@ Transform:
 --- !u!4 &2259322 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5454366071117854442, guid: a74a42d8eec91f24dbe052913924d353,
+    type: 3}
+  m_PrefabInstance: {fileID: 2259318}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &16930704 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5454366071887868941, guid: a74a42d8eec91f24dbe052913924d353,
     type: 3}
   m_PrefabInstance: {fileID: 2259318}
   m_PrefabAsset: {fileID: 0}
@@ -1079,7 +1092,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 6aaaf76c847c208458389bdcd656e72e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1621,6 +1634,12 @@ Transform:
 --- !u!1 &1934599244 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5454366071035935043, guid: a74a42d8eec91f24dbe052913924d353,
+    type: 3}
+  m_PrefabInstance: {fileID: 2259318}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1934599245 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5454366071035935068, guid: a74a42d8eec91f24dbe052913924d353,
     type: 3}
   m_PrefabInstance: {fileID: 2259318}
   m_PrefabAsset: {fileID: 0}
