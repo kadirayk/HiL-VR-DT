@@ -13,6 +13,7 @@ public class DobotController : MonoBehaviour
 	public GameObject EndEffector; // magician_end_effector
 	public GameObject SuctionCup; //magicianSuctionCup
 	public GameObject Cube;
+	public bool suctionActive;
 	//private bool plus = true;
 	//private bool isHolding = false;
 
@@ -140,4 +141,6 @@ public class DobotController : MonoBehaviour
 		if (LowerArm.transform.rotation.eulerAngles.x > 30) { plus = false; }
 	*/
 	}
+
+	public bool SuctionActive { get => suctionActive; set => suctionActive = value; }
 }

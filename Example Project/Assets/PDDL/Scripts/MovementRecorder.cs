@@ -41,7 +41,8 @@ public class MovementRecorder : MonoBehaviour
 			RobotArmState state = new RobotArmState(
 				baseRotator.transform.localRotation.eulerAngles.y, 
 				l2_arm.transform.localRotation.eulerAngles.x, 
-				l3_arm.transform.localRotation.eulerAngles.x, 
+				l3_arm.transform.localRotation.eulerAngles.x,
+				false,
 				target.transform.position);
 			recordedMovements.Enqueue(state);
 		}

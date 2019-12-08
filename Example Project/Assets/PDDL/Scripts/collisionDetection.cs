@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class collisionDetection : MonoBehaviour
+public class CollisionDetection : MonoBehaviour
 {
 	private bool isHolding = false;
 
