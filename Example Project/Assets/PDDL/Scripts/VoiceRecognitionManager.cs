@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Windows.Speech;
 using System.Linq;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class VoiceRecognitionManager : MonoBehaviour
 {
@@ -55,6 +56,39 @@ public class VoiceRecognitionManager : MonoBehaviour
 			text.text = "Replaying Movements";
 			Debug.Log("replaying");
 			mr.Replay();
+		});
+
+		keywords.Add("Initial", () =>
+		{
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Initial State";
+			WorldState ws = GameObject.FindObjectOfType<WorldState>();
+			ws.Initial();
+		});
+
+		keywords.Add("Goal", () =>
+		{
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Goal State";
+			WorldState ws = GameObject.FindObjectOfType<WorldState>();
+			ws.Goal();
+		});
+
+		keywords.Add("Solve", () =>
+		{
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Solving";
+			WorldState ws = GameObject.FindObjectOfType<WorldState>();
+			ws.Solve();
+		});
+
+
+		keywords.Add("Restart", () =>
+		{
+			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 		});
 
 		keywordRecognizer = new KeywordRecognizer(keywords.Keys.ToArray(), ConfidenceLevel.Low);

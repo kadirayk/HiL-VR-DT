@@ -39,6 +39,15 @@ public class InverseKinematics : MonoBehaviour
 
 	}
 
+	public float[] GetAnglesForPosition(Vector3 pos) {
+		float[] angles = new float[3];
+		angles[0] = GetAngleForBaseRotator(pos);
+		float[] l2_l3Angles = GetAngleForL2AndL3(pos);
+		angles[1] = l2_l3Angles[0];
+		angles[2] = l2_l3Angles[1];
+		return angles;
+	}
+
 	public void DoIK()
 	{
 		HandleBaseRotator();
@@ -50,6 +59,50 @@ public class InverseKinematics : MonoBehaviour
 		// 1rad * 180/pi
 		return (float)(radian * (180 / Math.PI));
 	}
+
+	private float GetAngleForBaseRotator(Vector3 pos) {
+		float x_target = pos.x - baseRotator.position.x;
+		float z_target = pos.z - baseRotator.position.z;
+		// find arctan of x and z
+		// result of Atan is in radians; so convert it to degree
+		return radianToGrad(Math.Atan(x_target / z_target));
+
+	}
+
+	private float[] GetAngleForL2AndL3(Vector3 pos)
+	{
+		// find the distance of target in X (left-right) Z (forward-backward) Y (up-down) axises to robot base
+		float x_target = pos.x - baseRotator.position.x;
+		float y_target = pos.y - baseRotator.position.y;
+		float z_target = pos.z - baseRotator.position.z;
+
+		// add offset to target to match end effector position
+		y_target += endEffectorOffset_y;
+		z_target -= endEffectorOffset_z;
+
+		// find l3Angle
+		double e = Math.Sqrt(Math.Pow(y_target, 2) + Math.Pow(z_target, 2));
+		float l3Angle = radianToGrad(Math.Acos((Math.Pow(l2, 2) + Math.Pow(l3, 2) - Math.Pow(e, 2)) / (2 * l2 * l3)));
+
+		float c = radianToGrad(Math.Atan(y_target / z_target));
+		float b = radianToGrad(Math.Acos((Math.Pow(l2, 2) + Math.Pow(e, 2) - Math.Pow(l3, 2)) / (2 * l2 * e)));
+		float l2Angle = c + b;
+
+		// convert absolute angles to relative angles
+		if (l2Angle < 0)
+		{
+			l2Angle = 90 + l2Angle;
+		}
+		else
+		{
+			l2Angle = 90 - l2Angle;
+		}
+		l3Angle = 90 - l3Angle;
+		// apply rotations
+		return new float[] { l2Angle, l3Angle };
+	}
+
+
 
 
 	private void HandleBaseRotator()

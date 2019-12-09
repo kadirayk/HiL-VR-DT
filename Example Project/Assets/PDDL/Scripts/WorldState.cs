@@ -66,10 +66,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		str.Append("))");
 		goalState = str.ToString();
 		Debug.Log(goalState);
-		foreach (GameObject obj in gameObjects)
-		{
-			Destroy(obj);
-		}
+		//foreach (GameObject obj in gameObjects)
+		//{
+		//	Destroy(obj);
+		//}
 		loadSceneFromPDDL(initialState);
 	}
 
@@ -112,6 +112,19 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	public void findActionTarget(string pos)
 	{
+		foreach (GameObject stationary in stationaryObjects)
+		{
+			if (pos.Equals("pos" + stationary.GetComponentInChildren<TextMesh>().text)) {
+				Vector3 target = stationary.transform.position + new Vector3(0, 0.07f, 0);
+				InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+				actionTarget = ik.GetAnglesForPosition(target);
+			}
+			//str.Append(findObjectLocations(movable, stationary));
+			//Vector3 relative = stationary.transform.InverseTransformPoint(movable.transform.position);
+			//Debug.Log(stationary.name + ":" + UnityUtil.PositionToString(relative));
+		}
+
+		/*
 		if (pos.Equals("posA", System.StringComparison.InvariantCultureIgnoreCase))
 		{
 			actionTarget[0] = -34;
@@ -133,7 +146,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			actionTarget[0] = 182;
 			actionTarget[1] = 4;
 			actionTarget[2] = 4;
-		}
+		}*/
 	}
 
 
@@ -152,7 +165,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	private void realizeAtomic(string atomic)
 	{
-
+		Debug.Log("atomic: " + atomic);
 		string cubeName = atomic.Split(null)[1];
 		string posName = atomic.Split(null)[2];
 		foreach (GameObject stationary in stationaryObjects)
@@ -161,10 +174,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (label.Equals(posName, System.StringComparison.InvariantCultureIgnoreCase))
 			{
 				Vector3 pos = stationary.transform.position + new Vector3(0f, 0.04f, 0f);
-				Cube.name = cubeName;
-				GameObject obj = Instantiate(Cube, pos, Quaternion.identity);
-				int index = Int32.Parse(cubeName.Replace("Cube", "")) - 1;
-				gameObjects[index] = obj;
+
+				foreach (GameObject pddlObj in gameObjects) {
+					if (pddlObj.name.Equals(cubeName)) {
+						pddlObj.transform.position = pos;
+					}
+				}
 			}
 		}
 	}
@@ -230,6 +245,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		lowerArm = GameObject.Find("magician_link_2");
 		upperArm = GameObject.Find("magician_link_3");
 		hand = GameObject.Find("magician_link_4");
+		gameObjects.Add(GameObject.Find("BlueCube"));
 	}
 
 	// Update is called once per frame

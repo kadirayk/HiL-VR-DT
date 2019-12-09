@@ -1000,6 +1000,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114406460408930136, guid: a8be24853b558ca46b0ed5cee6359e45,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1284280202469825763, guid: a8be24853b558ca46b0ed5cee6359e45,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1058,7 +1063,7 @@ PrefabInstance:
     - target: {fileID: 1284280202469825767, guid: a8be24853b558ca46b0ed5cee6359e45,
         type: 3}
       propertyPath: m_Name
-      value: Cube
+      value: BlueCube
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a8be24853b558ca46b0ed5cee6359e45, type: 3}
@@ -1130,7 +1135,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 0, g: 0.8553839, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -1531,7 +1536,22 @@ PrefabInstance:
     - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
         type: 3}
       propertyPath: m_Text
-      value: 
+      value: red
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
+        type: 3}
+      propertyPath: m_Color.rgba
+      value: 4278190335
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
+        type: 3}
+      propertyPath: m_FontSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
+        type: 3}
+      propertyPath: m_OffsetZ
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 76116a2a0da00e34994db35eb264a258, type: 3}
@@ -1554,7 +1574,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1312398592
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1748,7 +1768,17 @@ PrefabInstance:
     - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
         type: 3}
       propertyPath: m_Text
-      value: 
+      value: blue
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
+        type: 3}
+      propertyPath: m_Color.rgba
+      value: 4294910976
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958096393178243160, guid: 76116a2a0da00e34994db35eb264a258,
+        type: 3}
+      propertyPath: m_FontSize
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 76116a2a0da00e34994db35eb264a258, type: 3}
@@ -2271,7 +2301,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1994403949}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0.888, z: 1.213}
+  m_LocalPosition: {x: 1, y: 0.9652, z: 1.2082}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1186282220}
