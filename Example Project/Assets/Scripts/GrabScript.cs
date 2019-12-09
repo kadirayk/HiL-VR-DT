@@ -33,11 +33,16 @@ public class GrabScript : MonoBehaviour
 		Debug.Log("script running");
 	}
 
+
 	// Update is called once per frame
 	void Update()
 	{
+		if (grabAction.GetState(handType)) {
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.DoIK();
+		}
 
-		if (!isGrabbing && grabAction.GetStateDown(handType))
+		if (grabAction.GetStateDown(handType))
 		{
 			isGrabbing = true;
 			Debug.Log("Grab from: " + handType);
@@ -56,8 +61,10 @@ public class GrabScript : MonoBehaviour
 				//Debug.Log(contents.ToString());
 			}
 			else if (handType.ToString().Equals("RightHand")) {
-				Vector3 pos = GameObject.Find("RightHand").transform.position;
-				Debug.Log("RightHand x:" + pos.x + " y:" + pos.y + " z:" + pos.z);
+				//Vector3 pos = GameObject.Find("RightHand").transform.position;
+				//Debug.Log("RightHand x:" + pos.x + " y:" + pos.y + " z:" + pos.z);
+				Debug.Log("holding");
+				
 			}
 			//HttpClient httpClient = new HttpClient();
 			//var response = httpClient.GetAsync("http://131.234.122.236:3000/move-to-position").Result;

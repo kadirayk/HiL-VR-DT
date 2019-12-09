@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Windows.Speech;
 using System.Linq;
+using UnityEngine.UI;
 
 public class VoiceRecognitionManager : MonoBehaviour
 {
 	KeywordRecognizer keywordRecognizer;
 	Dictionary<string, System.Action> keywords = new Dictionary<string, System.Action>();
 	public GameObject Cube;
+	
 
 	private void Start()
 	{
@@ -31,18 +33,26 @@ public class VoiceRecognitionManager : MonoBehaviour
 		MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 		keywords.Add("Record", () =>
 		{
-			Debug.Log("recording");
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Recording Movements";
 			mr.StartRecording();
 		});
 
 		keywords.Add("Stop", () =>
 		{
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Recording Stopped";
 			Debug.Log("stop");
 			mr.StopRecording();
 		});
 
 		keywords.Add("Replay", () =>
 		{
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Replaying Movements";
 			Debug.Log("replaying");
 			mr.Replay();
 		});

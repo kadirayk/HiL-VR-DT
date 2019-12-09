@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MovementRecorder : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class MovementRecorder : MonoBehaviour
 	public Transform l3_arm;
 	public Transform hand;
 	public Transform target;
+	public CollisionDetection collisionDetection;
+
 
 	Queue<RobotArmState> recordedMovements = new Queue<RobotArmState>();
 	private bool isRecording = false;
@@ -30,7 +33,7 @@ public class MovementRecorder : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-
+		collisionDetection = GameObject.FindObjectOfType<CollisionDetection>();
 	}
 
 	// Update is called once per frame
@@ -42,7 +45,7 @@ public class MovementRecorder : MonoBehaviour
 				baseRotator.transform.localRotation.eulerAngles.y, 
 				l2_arm.transform.localRotation.eulerAngles.x, 
 				l3_arm.transform.localRotation.eulerAngles.x,
-				false,
+				collisionDetection.isSuctionActive(),
 				target.transform.position);
 			recordedMovements.Enqueue(state);
 		}
@@ -56,10 +59,16 @@ public class MovementRecorder : MonoBehaviour
 				l3_arm.transform.localRotation = Quaternion.Euler(state.L3Angle, 0, 0);
 				float handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
+				if (!state.SuctionActive) {
+					collisionDetection.Drop();
+				}
 			}
 			else
 			{
 				isReplaying = false;
+				GameObject textObj = GameObject.Find("CurrentState_Text");
+				Text text = textObj.GetComponent<Text>();
+				text.text = "Replaying Done";
 			}
 		}
 	}
