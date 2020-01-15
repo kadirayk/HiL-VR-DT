@@ -60,6 +60,7 @@ public class MovementRecorder : MonoBehaviour
 				float handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
 				if (!state.SuctionActive) {
+					Debug.Log("drop in replay");
 					collisionDetection.Drop();
 				}
 			}

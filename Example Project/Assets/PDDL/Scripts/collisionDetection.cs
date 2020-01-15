@@ -43,6 +43,9 @@ public class CollisionDetection : MonoBehaviour
 			Debug.Log("update col");
 			this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic = false;
 			this.transform.DetachChildren();
+			
+			Debug.Log("is ki:" + this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic);
+
 			isHolding = false;
 			shouldDrop = false;
 		}
