@@ -26,14 +26,44 @@ public class MovementRecorder : MonoBehaviour
 		isRecording = false;
 	}
 
-	public void Replay() {
+	public void Replay()
+	{
 		isReplaying = true;
+	}
+
+	private void checkObjectsForNull()
+	{
+		if (baseRotator == null)
+		{
+			Debug.LogError("baseRotator null");
+		}
+		if (l2_arm == null)
+		{
+			Debug.LogError("l2_arm null");
+		}
+		if (l3_arm == null)
+		{
+			Debug.LogError("l3_arm null");
+		}
+		if (hand == null)
+		{
+			Debug.LogError("hand null");
+		}
+		if (target == null)
+		{
+			Debug.LogError("target null");
+		}
+		if (collisionDetection == null)
+		{
+			Debug.LogError("collisionDetection null");
+		}
 	}
 
 	// Start is called before the first frame update
 	void Start()
 	{
 		collisionDetection = GameObject.FindObjectOfType<CollisionDetection>();
+		checkObjectsForNull();
 	}
 
 	// Update is called once per frame
@@ -42,15 +72,16 @@ public class MovementRecorder : MonoBehaviour
 		if (isRecording)
 		{
 			RobotArmState state = new RobotArmState(
-				baseRotator.transform.localRotation.eulerAngles.y, 
-				l2_arm.transform.localRotation.eulerAngles.x, 
+				baseRotator.transform.localRotation.eulerAngles.y,
+				l2_arm.transform.localRotation.eulerAngles.x,
 				l3_arm.transform.localRotation.eulerAngles.x,
 				collisionDetection.isSuctionActive(),
 				target.transform.position);
 			recordedMovements.Enqueue(state);
 		}
 
-		if (isReplaying) {
+		if (isReplaying)
+		{
 			if (recordedMovements.Count != 0)
 			{
 				RobotArmState state = recordedMovements.Dequeue();
@@ -59,7 +90,8 @@ public class MovementRecorder : MonoBehaviour
 				l3_arm.transform.localRotation = Quaternion.Euler(state.L3Angle, 0, 0);
 				float handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
-				if (!state.SuctionActive) {
+				if (!state.SuctionActive)
+				{
 					Debug.Log("drop in replay");
 					collisionDetection.Drop();
 				}
