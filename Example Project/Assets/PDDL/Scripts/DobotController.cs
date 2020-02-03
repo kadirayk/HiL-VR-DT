@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DobotController : MonoBehaviour
 {
@@ -111,18 +112,27 @@ public class DobotController : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.R)) {
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.StartRecording();
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Recording Movements";
 		}
 
 		if (Input.GetKeyDown(KeyCode.P))
 		{
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.StopRecording();
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Stopped Recording";
 		}
 
 		if (Input.GetKeyDown(KeyCode.O))
 		{
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.Replay();
+			GameObject textObj = GameObject.Find("CurrentState_Text");
+			Text text = textObj.GetComponent<Text>();
+			text.text = "Replaying";
 		}
 
 		/*
