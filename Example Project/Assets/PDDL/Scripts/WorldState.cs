@@ -76,12 +76,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	public void Solve()
 	{
 		string problem = createPDDLProblem();
-		System.IO.File.WriteAllText(@"C:\Users\kadiray\PDDLSolver\problem.pddl", problem);
+		System.IO.File.WriteAllText(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\problem.pddl", problem);
 
 		System.Diagnostics.Process process = new System.Diagnostics.Process();
 		var startInfo = new System.Diagnostics.ProcessStartInfo
 		{
-			WorkingDirectory = @"C:\Users\kadiray\PDDLSolver",
+			WorkingDirectory = @"C:\Users\Kadiray\Thesis\VR\PDDLSolver",
 			WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
 			FileName = "cmd.exe",
 			Arguments = "/C java -jar PDDLSolver.jar domain.pddl problem.pddl"
@@ -90,7 +90,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		process.Start();
 		System.Threading.Thread.Sleep(2000);
 		process.Close();
-		string[] lines = System.IO.File.ReadAllLines(@"C:\Users\kadiray\PDDLSolver\solution.txt");
+		string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\solution.txt");
 		foreach (string line in lines)
 		{
 			Debug.Log(line);
