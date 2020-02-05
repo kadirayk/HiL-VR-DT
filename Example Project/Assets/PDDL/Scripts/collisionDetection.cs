@@ -34,6 +34,7 @@ public class CollisionDetection : MonoBehaviour
 		//	collision.gameObject.GetComponent<Rigidbody>().isKinematic = false;
 		//	isHolding = false;
 		//}
+
 	}
 
 	private void Update()
@@ -53,8 +54,8 @@ public class CollisionDetection : MonoBehaviour
 
 	void OnCollisionEnter(Collision collision)
 	{
-		Debug.Log("col enter1");
-		if (!isHolding)
+		//Debug.Log("col enter1 " + isHolding);
+		//if (!isHolding)
 		{
 			Debug.Log("col enter2");
 			collision.gameObject.transform.parent = this.transform;
