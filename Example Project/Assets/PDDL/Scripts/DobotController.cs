@@ -135,6 +135,12 @@ public class DobotController : MonoBehaviour
 			text.text = "Replaying";
 		}
 
+		if (Input.GetKeyDown(KeyCode.Space))
+		{
+			CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+			cd.Drop();
+		}
+
 		/*
 		BaseRotator.transform.Rotate(0, 1, 0);
 		if (plus) {
