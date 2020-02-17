@@ -13,7 +13,7 @@ public class CollisionDetection : MonoBehaviour
 	}
 
 	public void Drop() {
-		Debug.Log("drop called");
+		//Debug.Log("drop called");
 		shouldDrop = true;
 	}
 
@@ -41,11 +41,11 @@ public class CollisionDetection : MonoBehaviour
 	{
 		if (isHolding && shouldDrop)
 		{
-			Debug.Log("update col");
+			//Debug.Log("update col");
 			this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic = false;
 			this.transform.DetachChildren();
 			
-			Debug.Log("is ki:" + this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic);
+			//Debug.Log("is ki:" + this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic);
 
 			isHolding = false;
 			shouldDrop = false;
@@ -57,7 +57,7 @@ public class CollisionDetection : MonoBehaviour
 		//Debug.Log("col enter1 " + isHolding);
 		//if (!isHolding)
 		{
-			Debug.Log("col enter2");
+			//Debug.Log("col enter2");
 			collision.gameObject.transform.parent = this.transform;
 			collision.gameObject.GetComponent<Rigidbody>().isKinematic = true;
 			isHolding = true;
