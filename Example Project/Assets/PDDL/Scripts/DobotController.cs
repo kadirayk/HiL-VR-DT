@@ -109,6 +109,37 @@ public class DobotController : MonoBehaviour
 			Debug.Log("upper:" + UpperArm.transform.rotation.eulerAngles.x);
 		}
 
+		if (Input.GetKeyDown(KeyCode.Alpha4))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("left");
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha5))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("right");
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha6))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("up");
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha7))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("down");
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha8))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("fw");
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha9))
+		{
+			InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
+			ik.moveTarget("bw");
+		}
+
 		if (Input.GetKeyDown(KeyCode.R)) {
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.StartRecording();
