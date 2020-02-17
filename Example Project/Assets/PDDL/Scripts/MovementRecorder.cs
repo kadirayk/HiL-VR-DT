@@ -16,6 +16,7 @@ public class MovementRecorder : MonoBehaviour
 	Queue<RobotArmState> recordedMovements = new Queue<RobotArmState>();
 	private bool isRecording = false;
 	private bool isReplaying = false;
+	private bool isReplayFinished = true;
 	public void StartRecording()
 	{
 		isRecording = true;
@@ -29,6 +30,12 @@ public class MovementRecorder : MonoBehaviour
 	public void Replay()
 	{
 		isReplaying = true;
+		isReplayFinished = false;
+	}
+
+	public bool isReplayDone()
+	{
+		return isReplayFinished;
 	}
 
 	private void checkObjectsForNull()
@@ -57,6 +64,10 @@ public class MovementRecorder : MonoBehaviour
 		{
 			Debug.LogError("collisionDetection null");
 		}
+	}
+
+	public void SetRecordedMovements(Queue<RobotArmState> recordedMovements) {
+		this.recordedMovements = recordedMovements;
 	}
 
 	// Start is called before the first frame update
@@ -92,16 +103,19 @@ public class MovementRecorder : MonoBehaviour
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
 				if (!state.SuctionActive)
 				{
-					Debug.Log("drop in replay");
+					//Debug.Log("drop in replay");
 					collisionDetection.Drop();
 				}
+				isReplayFinished = false;
 			}
 			else
 			{
 				isReplaying = false;
+				isReplayFinished = true;
 				GameObject textObj = GameObject.Find("CurrentState_Text");
 				Text text = textObj.GetComponent<Text>();
 				text.text = "Replaying Done";
+				GameObject cube = GameObject.Find("RedCube1");
 			}
 		}
 	}
