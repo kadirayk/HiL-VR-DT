@@ -10,6 +10,7 @@ public class MovementRecorder : MonoBehaviour
 	public Transform l3_arm;
 	public Transform hand;
 	public Transform target;
+	public Transform suctionCup;
 	public CollisionDetection collisionDetection;
 
 
@@ -101,6 +102,7 @@ public class MovementRecorder : MonoBehaviour
 				l3_arm.transform.localRotation = Quaternion.Euler(state.L3Angle, 0, 0);
 				float handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
+				suctionCup.transform.localRotation = Quaternion.Euler(0, -state.BaseAngle, 0);
 				if (!state.SuctionActive)
 				{
 					//Debug.Log("drop in replay");

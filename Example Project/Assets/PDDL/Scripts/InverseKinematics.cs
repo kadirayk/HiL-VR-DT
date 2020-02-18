@@ -200,6 +200,7 @@ public class InverseKinematics : MonoBehaviour
 		if (baseRotatorAngle >= baseRotatorMinAngle && baseRotatorAngle <= baseRotatorMaxAngle)
 		{
 			baseRotator.transform.localRotation = Quaternion.Euler(0, baseRotatorAngle, 0);
+			suctionCup.transform.localRotation = Quaternion.Euler(0, -baseRotatorAngle, 0);
 		}
 	}
 
