@@ -154,6 +154,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	{
 		//string problem = createPDDLProblem();
 		//System.IO.File.WriteAllText(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\problem.pddl", problem);
+		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+		cd.AutomatedMode(true);
+
 		foreach (GameObject block in gameObjects)
 		{
 			block.GetComponent<Rigidbody>().useGravity = false;
@@ -174,7 +177,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		int i = 0;
 		while (newModification == modification)
 		{
-			if (i>SOLVE_TIMEOUT)
+			if (i > SOLVE_TIMEOUT)
 			{
 				Debug.LogError("No solution is found in " + i + " seconds");
 				return;
@@ -309,8 +312,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	private void drop()
 	{
-		RobotArmState state = new RobotArmState(startAngles[0], startAngles[1], startAngles[2], false, endPos);
-		plannedMovements.Enqueue(state);
+		for (int i = 0; i < 10; i++)
+		{
+			RobotArmState state = new RobotArmState(startAngles[0], startAngles[1], startAngles[2], false, endPos);
+			plannedMovements.Enqueue(state);
+		}
 	}
 
 	private void pickupBlock(String blockName)
@@ -320,7 +326,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
 			{
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
-				Vector3 target = new Vector3(block.GetComponent<Renderer>().bounds.center.x, block.GetComponent<Renderer>().bounds.max.y - 0.0085f, block.GetComponent<Renderer>().bounds.center.z);
+				Vector3 target = new Vector3(block.GetComponent<Renderer>().bounds.center.x, block.GetComponent<Renderer>().bounds.max.y - 0.01f, block.GetComponent<Renderer>().bounds.center.z);
 				jump(true);
 				moveToPos(target, true);
 				jump(true);
@@ -352,6 +358,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
 				Vector3 target = new Vector3(pos.GetComponent<Renderer>().bounds.center.x, pos.GetComponent<Renderer>().bounds.max.y + blockHeight, pos.GetComponent<Renderer>().bounds.center.z);
+				//Debug.Log("center x:" + pos.GetComponent<Renderer>().bounds.center.x + " y:" + pos.GetComponent<Renderer>().bounds.center.y + " z:" + pos.GetComponent<Renderer>().bounds.center.z);
+				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
+				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
+				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
 				moveToPos(target, true);
 				drop();
 				jump(false);
@@ -409,11 +419,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			baseRotatorDifference = angleTarget[0] - baseAngle;
 		}
 
-		while (Math.Abs(lowerArmDifference) > 0.125)
+		while (Math.Abs(lowerArmDifference) > 0.25)
 		{
 			if (lowerArmDifference < 0)
 			{
-				l2Start -= 0.25f;
+				l2Start -= 0.5f;
 				RobotArmState state = new RobotArmState(
 					baseAngle,
 					l2Start,
@@ -424,7 +434,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 			else
 			{
-				l2Start += 0.25f;
+				l2Start += 0.5f;
 				RobotArmState state = new RobotArmState(
 					baseAngle,
 					l2Start,
@@ -436,11 +446,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			lowerArmDifference = angleTarget[1] - l2Start;
 		}
 
-		while (Math.Abs(upperArmDifference) > 0.125)
+		while (Math.Abs(upperArmDifference) > 0.25)
 		{
 			if (upperArmDifference < 0)
 			{
-				l3Start -= 0.25f;
+				l3Start -= 0.5f;
 				RobotArmState state = new RobotArmState(
 					baseAngle,
 					l2Start,
@@ -451,7 +461,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 			else
 			{
-				l3Start += 0.25f;
+				l3Start += 0.5f;
 				RobotArmState state = new RobotArmState(
 					baseAngle,
 					l2Start,
@@ -655,15 +665,25 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	// Update is called once per frame
 	void Update()
 	{
-		if (shouldSolve) {
-			if (solutionLines.Count != 0 && mr.isReplayDone()) {
+		if (shouldSolve)
+		{
+			if (solutionLines.Count != 0 && mr.isReplayDone())
+			{
 				string line = solutionLines.Dequeue();
 				divideActions(line);
 				mr.SetRecordedMovements(plannedMovements);
 				mr.Replay();
-			} else if (solutionLines.Count == 0 && mr.isReplayDone()) {
+			}
+			else if (solutionLines.Count == 0 && mr.isReplayDone())
+			{
 				shouldSolve = false;
+				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+				cd.AutomatedMode(false);
 
+				foreach (GameObject block in gameObjects)
+				{
+					block.GetComponent<Rigidbody>().useGravity = true;
+				}
 			}
 
 		}
