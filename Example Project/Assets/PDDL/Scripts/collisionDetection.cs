@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,13 +9,24 @@ public class CollisionDetection : MonoBehaviour
 
 	private bool shouldDrop = false;
 
-	public bool isSuctionActive() {
+	private bool isAutomatedMode = false;
+
+	ValueTuple<GameObject, int> frameCountToDropObject;
+
+	public bool isSuctionActive()
+	{
 		return !shouldDrop;
 	}
 
-	public void Drop() {
+	public void Drop()
+	{
 		//Debug.Log("drop called");
 		shouldDrop = true;
+	}
+
+	public void AutomatedMode(Boolean active)
+	{
+		isAutomatedMode = active;
 	}
 
 	void OnCollisionStay(Collision collision)
@@ -42,24 +54,34 @@ public class CollisionDetection : MonoBehaviour
 		if (isHolding && shouldDrop)
 		{
 			//Debug.Log("update col");
-			this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic = false;
+			GameObject obj = frameCountToDropObject.Item1; //this.transform.GetChild(this.transform.childCount - 1).gameObject;
+			obj.GetComponent<Rigidbody>().isKinematic = false;
+			obj.GetComponent<Rigidbody>().useGravity = true;
 			this.transform.DetachChildren();
-			
 			//Debug.Log("is ki:" + this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic);
-
+			frameCountToDropObject.Item2 += 1;
 			isHolding = false;
 			shouldDrop = false;
+		}
+		else if (isAutomatedMode && frameCountToDropObject.Item2 >= 1)
+		{
+			GameObject obj = frameCountToDropObject.Item1;
+			obj.GetComponent<Rigidbody>().useGravity = false;
+			obj.GetComponent<Rigidbody>().isKinematic = true;
 		}
 	}
 
 	void OnCollisionEnter(Collision collision)
 	{
 		//Debug.Log("col enter1 " + isHolding);
-		//if (!isHolding)
+		if (!isHolding)
 		{
 			//Debug.Log("col enter2");
-			collision.gameObject.transform.parent = this.transform;
-			collision.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+			GameObject obj = collision.gameObject;
+			frameCountToDropObject = new ValueTuple<GameObject, int>(obj, 0);
+			obj.transform.parent = this.transform;
+			obj.GetComponent<Rigidbody>().isKinematic = true;
+
 			isHolding = true;
 			shouldDrop = false;
 		}
