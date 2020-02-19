@@ -6,6 +6,7 @@ using Assets.PDDL;
 using System.Text;
 using System;
 using System.Threading.Tasks;
+using Assets.Util;
 
 public class WorldState : MonoBehaviour, IListener, IProblemState
 {
@@ -30,8 +31,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	bool shouldSolve = false;
 	Queue<String> solutionLines;
 	MovementRecorder mr;
-	private static readonly int SOLVE_TIMEOUT = 10;
-	private static readonly string WORK_PATH = @"C:\Users\kadiray\Neuer Ordner\thesis-vr\";
+	private static readonly int SOLVE_TIMEOUT = Configuration.getInt("SOLVE_TIMEOUT");
+	private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
 	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
 
 
