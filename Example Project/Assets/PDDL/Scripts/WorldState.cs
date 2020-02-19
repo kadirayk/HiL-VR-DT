@@ -31,6 +31,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	Queue<String> solutionLines;
 	MovementRecorder mr;
 	private static readonly int SOLVE_TIMEOUT = 10;
+	private static readonly string WORK_PATH = @"C:\Users\kadiray\Neuer Ordner\thesis-vr\";
+	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
 
 
 	public void Initial()
@@ -153,7 +155,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	public void Solve()
 	{
 		//string problem = createPDDLProblem();
-		//System.IO.File.WriteAllText(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\problem.pddl", problem);
+		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
 		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 		cd.AutomatedMode(true);
 
@@ -162,11 +164,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			block.GetComponent<Rigidbody>().useGravity = false;
 		}
 
-		DateTime modification = System.IO.File.GetLastWriteTime(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\solution.txt");
+		DateTime modification = System.IO.File.GetLastWriteTime(WORK_PATH + @"PDDLSolver\solution.txt");
 		System.Diagnostics.Process process = new System.Diagnostics.Process();
 		var startInfo = new System.Diagnostics.ProcessStartInfo
 		{
-			WorkingDirectory = @"C:\Users\Kadiray\Thesis\VR\PDDLSolver",
+			WorkingDirectory = WORK_PATH + @"PDDLSolver",
 			WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
 			FileName = "cmd.exe",
 			Arguments = "/C java -jar PDDLSolver.jar domain.pddl problem.pddl"
@@ -183,12 +185,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				return;
 			}
 			System.Threading.Thread.Sleep(1000);
-			newModification = System.IO.File.GetLastWriteTime(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\solution.txt");
+			newModification = System.IO.File.GetLastWriteTime(WORK_PATH + @"PDDLSolver\solution.txt");
 			i++;
 		}
 		Debug.Log("solved in: " + i + " seconds");
 		process.Close();
-		string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kadiray\Thesis\VR\PDDLSolver\solution.txt");
+		string[] lines = System.IO.File.ReadAllLines(WORK_PATH + @"PDDLSolver\solution.txt");
 		//GameObject cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 init x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 		solutionLines = new Queue<string>();
@@ -238,6 +240,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		}
 		else if (action.StartsWith("put-down"))
 		{
+			action = action.Replace("put-down(", "");
+			action = action.Replace(")", "");
+			String block = action.Trim();
+			putdownBlock(block);
 		}
 		else if (action.StartsWith("stack"))
 		{
@@ -262,6 +268,42 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//actionQueue.Enqueue(from);
 		////actionQueue.Enqueue("reset");
 		//actionQueue.Enqueue(to);
+	}
+
+	private void putdownBlock(string blockName)
+	{
+		GameObject targetBlock = null;
+		foreach (GameObject block in gameObjects)
+		{
+			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				targetBlock = block;
+			}
+		}
+
+		if (targetBlock == null)
+		{
+			throw new Exception("Target Block not Found in gameobjects");
+		}
+
+		foreach (GameObject pos in putDownPositions.Keys)
+		{
+			if (putDownPositions[pos])
+			{
+				float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
+				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
+				Vector3 target = new Vector3(pos.GetComponent<Renderer>().bounds.center.x, pos.GetComponent<Renderer>().bounds.max.y + blockHeight, pos.GetComponent<Renderer>().bounds.center.z);
+				//Debug.Log("center x:" + pos.GetComponent<Renderer>().bounds.center.x + " y:" + pos.GetComponent<Renderer>().bounds.center.y + " z:" + pos.GetComponent<Renderer>().bounds.center.z);
+				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
+				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
+				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
+				moveToPos(target, true);
+				drop();
+				jump(false);
+				putDownPositions[pos] = false;
+				break;
+			}
+		}
 	}
 
 	private void stackBlock(string blockInHandName, string targetBlockName)
@@ -650,6 +692,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	void Start()
 	{
 		positions = GameObject.FindGameObjectsWithTag("Position");
+		IList<GameObject> putPos = GameObject.FindGameObjectsWithTag("PutDownPos");
+		foreach(GameObject obj in putPos)
+		{
+			putDownPositions.Add(obj, true);
+		}
 		baseRotator = GameObject.Find("magician_link_1");
 		lowerArm = GameObject.Find("magician_link_2");
 		upperArm = GameObject.Find("magician_link_3");
