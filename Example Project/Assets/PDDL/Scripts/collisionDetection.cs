@@ -56,7 +56,7 @@ public class CollisionDetection : MonoBehaviour
 			//Debug.Log("update col");
 			GameObject obj = frameCountToDropObject.Item1; //this.transform.GetChild(this.transform.childCount - 1).gameObject;
 			obj.GetComponent<Rigidbody>().isKinematic = false;
-			obj.GetComponent<Rigidbody>().useGravity = true;
+			//obj.GetComponent<Rigidbody>().useGravity = true;
 			this.transform.DetachChildren();
 			//Debug.Log("is ki:" + this.transform.GetChild(this.transform.childCount - 1).gameObject.GetComponent<Rigidbody>().isKinematic);
 			frameCountToDropObject.Item2 += 1;
@@ -66,14 +66,15 @@ public class CollisionDetection : MonoBehaviour
 		else if (isAutomatedMode && frameCountToDropObject.Item2 >= 1)
 		{
 			GameObject obj = frameCountToDropObject.Item1;
-			obj.GetComponent<Rigidbody>().useGravity = false;
-			obj.GetComponent<Rigidbody>().isKinematic = true;
+			//obj.GetComponent<Rigidbody>().useGravity = false;
+			//obj.GetComponent<Rigidbody>().isKinematic = true;
 		}
 	}
 
 	void OnCollisionEnter(Collision collision)
 	{
 		//Debug.Log("col enter1 " + isHolding);
+		Debug.Log("collision enter");
 		if (!isHolding)
 		{
 			//Debug.Log("col enter2");
