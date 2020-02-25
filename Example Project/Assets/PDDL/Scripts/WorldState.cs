@@ -160,10 +160,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 		cd.AutomatedMode(true);
 
-		foreach (GameObject block in gameObjects)
-		{
-			block.GetComponent<Rigidbody>().useGravity = false;
-		}
+		//foreach (GameObject block in gameObjects)
+		//{
+		//	block.GetComponent<Rigidbody>().useGravity = false;
+		//}
 
 		DateTime modification = System.IO.File.GetLastWriteTime(WORK_PATH + @"PDDLSolver\solution.txt");
 		System.Diagnostics.Process process = new System.Diagnostics.Process();
@@ -291,9 +291,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		{
 			if (putDownPositions[pos])
 			{
-				float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
+				//float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
-				Vector3 target = new Vector3(pos.GetComponent<Renderer>().bounds.center.x, pos.GetComponent<Renderer>().bounds.max.y + blockHeight, pos.GetComponent<Renderer>().bounds.center.z);
+				Vector3 target = new Vector3(pos.transform.position.x, pos.transform.position.y + 0.027f, pos.transform.position.z);
 				//Debug.Log("center x:" + pos.GetComponent<Renderer>().bounds.center.x + " y:" + pos.GetComponent<Renderer>().bounds.center.y + " z:" + pos.GetComponent<Renderer>().bounds.center.z);
 				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
 				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
@@ -338,8 +338,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		}
 
 
-		float blockHeight = blockInHand.GetComponent<Renderer>().bounds.max.y - blockInHand.GetComponent<Renderer>().bounds.min.y;
-		Vector3 target = new Vector3(targetBlock.GetComponent<Renderer>().bounds.center.x, targetBlock.GetComponent<Renderer>().bounds.max.y + blockHeight, targetBlock.GetComponent<Renderer>().bounds.center.z);
+		float blockHeight = 0.029f; //blockInHand.GetComponent<Renderer>().bounds.max.y - blockInHand.GetComponent<Renderer>().bounds.min.y;
+		float halfHeight = 0.0125f;
+		Vector3 target = new Vector3(targetBlock.transform.position.x, targetBlock.transform.position.y + halfHeight + blockHeight, targetBlock.transform.position.z);
 		moveToPos(target, true);
 		drop();
 		jump(false);
@@ -369,7 +370,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
 			{
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
-				Vector3 target = new Vector3(block.GetComponent<Renderer>().bounds.center.x, block.GetComponent<Renderer>().bounds.max.y - 0.01f, block.GetComponent<Renderer>().bounds.center.z);
+				Vector3 target = new Vector3(block.transform.position.x, block.transform.position.y + 0.013f, block.transform.position.z);
 				jump(true);
 				moveToPos(target, true);
 				jump(true);
@@ -398,9 +399,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			string label = "pos" + pos.GetComponentInChildren<TextMesh>().text;
 			if (posName.Equals(label, StringComparison.InvariantCultureIgnoreCase))
 			{
-				float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
+				//float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
-				Vector3 target = new Vector3(pos.GetComponent<Renderer>().bounds.center.x, pos.GetComponent<Renderer>().bounds.max.y + blockHeight, pos.GetComponent<Renderer>().bounds.center.z);
+				Vector3 target = new Vector3(pos.transform.position.x, pos.transform.position.y + 0.027f, pos.transform.position.z);
 				//Debug.Log("center x:" + pos.GetComponent<Renderer>().bounds.center.x + " y:" + pos.GetComponent<Renderer>().bounds.center.y + " z:" + pos.GetComponent<Renderer>().bounds.center.z);
 				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
 				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
@@ -416,6 +417,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	{
 		InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
 		float[] angleTarget = ik.GetAnglesForPosition(target);
+		angleTarget = ik.GetAnglesForPositionCorrection(target, angleTarget);
+		angleTarget = ik.GetAnglesForPositionCorrection(target, angleTarget);
 		float baseStart = startAngles[0];
 		float l2Start = startAngles[1];
 		float l3Start = startAngles[2];
@@ -433,6 +436,46 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		float lowerArmDifference = angleTarget[1] - l2Start;
 		float upperArmDifference = angleTarget[2] - l3Start;
 
+
+		while (Math.Abs(baseRotatorDifference) > 0.250 && Math.Abs(lowerArmDifference) > 0.25 && Math.Abs(upperArmDifference) > 0.25)
+		{
+			//Debug.Log(baseRotatorDifference);
+			if (baseRotatorDifference < 0)
+			{
+				baseAngle -= 0.5f;
+			}
+			else
+			{
+				baseAngle += 0.5f;
+			}
+			if (lowerArmDifference < 0)
+			{
+				l2Start -= 0.5f;
+			}
+			else
+			{
+				l2Start += 0.5f;
+			}
+			if (upperArmDifference < 0)
+			{
+				l3Start -= 0.5f;
+			}
+			else
+			{
+				l3Start += 0.5f;
+			}
+
+			RobotArmState state = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+			plannedMovements.Enqueue(state);
+			baseRotatorDifference = angleTarget[0] - baseAngle;
+			lowerArmDifference = angleTarget[1] - l2Start;
+			upperArmDifference = angleTarget[2] - l3Start;
+		}
 
 		while (Math.Abs(baseRotatorDifference) > 0.250)
 		{
@@ -515,6 +558,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 			upperArmDifference = angleTarget[2] - l3Start;
 		}
+
+
 		startAngles = angleTarget;
 		endPos = target;
 	}
@@ -694,7 +739,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	{
 		positions = GameObject.FindGameObjectsWithTag("Position");
 		IList<GameObject> putPos = GameObject.FindGameObjectsWithTag("PutDownPos");
-		foreach(GameObject obj in putPos)
+		foreach (GameObject obj in putPos)
 		{
 			putDownPositions.Add(obj, true);
 		}
@@ -728,10 +773,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 				cd.AutomatedMode(false);
 
-				foreach (GameObject block in gameObjects)
-				{
-					block.GetComponent<Rigidbody>().useGravity = true;
-				}
+				//foreach (GameObject block in gameObjects)
+				//{
+				//	block.GetComponent<Rigidbody>().useGravity = true;
+				//}
 			}
 
 		}
