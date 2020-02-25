@@ -59,14 +59,39 @@ public class InverseKinematics : MonoBehaviour
 		l1 = Vector3.Distance(baseRotator.position, l2_arm.position);
 		l2 = Vector3.Distance(l2_arm.position, l3_arm.position);
 		l3 = Vector3.Distance(l3_arm.position, hand.position);
-		/*GameObject cube = GameObject.Find("RedCube2");
+		/*GameObject cube = GameObject.Find("BlueCube");
 		//float diff = cube.GetComponent<Renderer>().bounds.max.y - cube.GetComponent<Renderer>().bounds.min.y;
-		float[] angles = GetAnglesForPosition(new Vector3(cube.GetComponent<Renderer>().bounds.center.x, cube.GetComponent<Renderer>().bounds.max.y - 0.01f, cube.GetComponent<Renderer>().bounds.center.z));
+		float[] angles = GetAnglesForPosition(new Vector3(cube.transform.position.x, cube.transform.position.y + 0.0125f, cube.transform.position.z));
+		Debug.Log("--b:" + angles[0] + " l2:" + angles[1] + " l3:" + angles[2]);
+		//l2_arm.transform.localRotation = Quaternion.Euler(angles[1], 0, 0);
+		//l3_arm.transform.localRotation = Quaternion.Euler(angles[2], 0, 0);
+		//hand.transform.localRotation = Quaternion.Euler((angles[1] + angles[2]) * -1, 0, 0);
+		//baseRotator.transform.localRotation = Quaternion.Euler(0, angles[0], 0);
+
+		//float suctionY = cube.GetComponent<Renderer>().bounds.min.y;
+		//float yDiff = cube.GetComponent<Renderer>().bounds.max.y - cube.GetComponent<Renderer>().bounds.min.y;
+		//float targetY = cube.transform.position.y;
+		//float diff = suctionY - targetY;
+		//Debug.Log("suction tdif:" + diff);
+		angles = GetAnglesForPositionCorrection(new Vector3(cube.transform.position.x, cube.transform.position.y + 0.0125f, cube.transform.position.z), angles);
+		angles = GetAnglesForPositionCorrection(new Vector3(cube.transform.position.x, cube.transform.position.y + 0.0125f, cube.transform.position.z), angles);
 		Debug.Log("--b:" + angles[0] + " l2:" + angles[1] + " l3:" + angles[2]);
 		l2_arm.transform.localRotation = Quaternion.Euler(angles[1], 0, 0);
 		l3_arm.transform.localRotation = Quaternion.Euler(angles[2], 0, 0);
 		hand.transform.localRotation = Quaternion.Euler((angles[1] + angles[2]) * -1, 0, 0);
-		baseRotator.transform.localRotation = Quaternion.Euler(0, angles[0], 0);*/
+		baseRotator.transform.localRotation = Quaternion.Euler(0, angles[0], 0);
+
+		Debug.Log("suction x:" + suctionCup.transform.position.x + "y:" + suctionCup.transform.position.y + "z:" + suctionCup.transform.position.z);*/
+		
+		//Debug.Log("suction ydif:" + yDiff);
+
+		/*GameObject cube = GameObject.Find("RedCube2");
+		float yDiff = cube.GetComponent<Renderer>().bounds.max.y - cube.GetComponent<Renderer>().bounds.min.y;
+		float xDiff = cube.GetComponent<Renderer>().bounds.max.x - cube.GetComponent<Renderer>().bounds.min.x;
+		float zDiff = cube.GetComponent<Renderer>().bounds.max.z - cube.GetComponent<Renderer>().bounds.min.z;
+
+		Debug.Log("ydiff:" + yDiff + " x:" + xDiff + " z:" + zDiff);
+		Debug.Log("y:" + cube.transform.position.y + " x:" + cube.transform.position.x  + " z:" + cube.transform.position.z);*/
 
 		//target = cube.transform;
 		//DoIK();
@@ -86,6 +111,16 @@ public class InverseKinematics : MonoBehaviour
 		l2_l3Angles = GetAngleForL2AndL3(pos, l2_l3Angles[0], l2_l3Angles[1]);
 		angles[1] = l2_l3Angles[0];
 		angles[2] = l2_l3Angles[1];
+		return angles;
+	}
+
+	public float[] GetAnglesForPositionCorrection(Vector3 pos, float[] anglesForCorrection) {
+		float[] angles = new float[3];
+		angles[0] = GetAngleForBaseRotator(pos);
+		float[] new_l2_l3Angles = GetAngleForL2AndL3(pos, anglesForCorrection[1], anglesForCorrection[2]);
+		new_l2_l3Angles = GetAngleForL2AndL3(pos, new_l2_l3Angles[0], new_l2_l3Angles[1]);
+		angles[1] = new_l2_l3Angles[0];
+		angles[2] = new_l2_l3Angles[1];
 		return angles;
 	}
 
