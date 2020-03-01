@@ -67,7 +67,8 @@ public class MovementRecorder : MonoBehaviour
 		}
 	}
 
-	public void SetRecordedMovements(Queue<RobotArmState> recordedMovements) {
+	public void SetRecordedMovements(Queue<RobotArmState> recordedMovements)
+	{
 		this.recordedMovements = recordedMovements;
 	}
 
@@ -105,7 +106,6 @@ public class MovementRecorder : MonoBehaviour
 				suctionCup.transform.localRotation = Quaternion.Euler(0, -state.BaseAngle, 0);
 				if (!state.SuctionActive)
 				{
-					//Debug.Log("drop in replay");
 					collisionDetection.Drop();
 				}
 				isReplayFinished = false;
