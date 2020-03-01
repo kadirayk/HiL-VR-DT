@@ -56,9 +56,6 @@ namespace RosSharp.RosBridgeClient
 				cube.GetComponent<Renderer>().material.color = color;
 				i++;
 
-				//ServiceCaller sc = new ServiceCaller();
-				//sc.SetPTPCmd(1, (float)obj.graspPoint.x, (float)obj.graspPoint.y, (float)obj.graspPoint.z, 0, false);
-
 			}
 			shouldUpdateVisualization = false;
 			isMessageReceived = false;

@@ -748,7 +748,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		hand = GameObject.Find("magician_link_4");
 		endEffector = GameObject.Find("magician_end_effector");
 		endPos = endEffector.transform.position;
-		gameObjects.AddRange(GameObject.FindGameObjectsWithTag("PDDLObject"));
+		//gameObjects.AddRange(GameObject.FindGameObjectsWithTag("PDDLObject"));
 		GameObject table = GameObject.Find("Table");
 		tableHeight = table.GetComponent<Renderer>().bounds.max.y;
 		mr = GameObject.FindObjectOfType<MovementRecorder>();
