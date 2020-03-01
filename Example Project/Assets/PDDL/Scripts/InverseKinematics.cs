@@ -5,8 +5,8 @@ using System;
 
 public class InverseKinematics : MonoBehaviour
 {
-	private float baseRotatorMinAngle = -90;
-	private float baseRotatorMaxAngle = 90;
+	private float baseRotatorMinAngle = -135;
+	private float baseRotatorMaxAngle = 135;
 	private float l2_armMinAngle = 0;
 	private float l2_armMaxAngle = 85;
 	private float l3_armMinAngle = -10;
@@ -82,7 +82,7 @@ public class InverseKinematics : MonoBehaviour
 		baseRotator.transform.localRotation = Quaternion.Euler(0, angles[0], 0);
 
 		Debug.Log("suction x:" + suctionCup.transform.position.x + "y:" + suctionCup.transform.position.y + "z:" + suctionCup.transform.position.z);*/
-		
+
 		//Debug.Log("suction ydif:" + yDiff);
 
 		/*GameObject cube = GameObject.Find("RedCube2");
@@ -114,7 +114,8 @@ public class InverseKinematics : MonoBehaviour
 		return angles;
 	}
 
-	public float[] GetAnglesForPositionCorrection(Vector3 pos, float[] anglesForCorrection) {
+	public float[] GetAnglesForPositionCorrection(Vector3 pos, float[] anglesForCorrection)
+	{
 		float[] angles = new float[3];
 		angles[0] = GetAngleForBaseRotator(pos);
 		float[] new_l2_l3Angles = GetAngleForL2AndL3(pos, anglesForCorrection[1], anglesForCorrection[2]);
@@ -145,10 +146,23 @@ public class InverseKinematics : MonoBehaviour
 	{
 		float x_target = pos.x - baseRotator.position.x;
 		float z_target = pos.z - baseRotator.position.z;
+		float baseRotatorAngle = 0;
+		if (z_target < 0 && x_target < 0)
+		{
+			baseRotatorAngle = -90 - (90 - radianToGrad(Math.Atan(x_target / z_target)));
+		}
+		else if (z_target < 0 && x_target > 0)
+		{
+			baseRotatorAngle = 90 + (90 + radianToGrad(Math.Atan(x_target / z_target)));
+		}
+		else
+		{
+			baseRotatorAngle = radianToGrad(Math.Atan(x_target / z_target));
+		}
 
 		// find arctan of x and z
 		// result of Atan is in radians; so convert it to degree
-		return radianToGrad(Math.Atan(x_target / z_target));
+		return baseRotatorAngle;
 
 	}
 
@@ -189,7 +203,7 @@ public class InverseKinematics : MonoBehaviour
 			float endEffector_y = (float)(endEffector_z * Math.Sin(gradToRadian(handRotation)));
 			y_target += endEffectorOffset_y + endEffector_y;
 		}
-		
+
 		l3 = 0.147f + endEffector_z;
 
 		//hypotenuse of z and x
@@ -228,9 +242,22 @@ public class InverseKinematics : MonoBehaviour
 		// find the distance of target in X (left-right) and Z(forward-backward) axises to robot base
 		float x_target = target.position.x - baseRotator.position.x;
 		float z_target = target.position.z - baseRotator.position.z;
+		float baseRotatorAngle = 0;
+		if (z_target < 0 && x_target < 0)
+		{
+			baseRotatorAngle = -90 - (90 - radianToGrad(Math.Atan(x_target / z_target)));
+		}
+		else if (z_target < 0 && x_target>0)
+		{
+			baseRotatorAngle = 90 + (90 + radianToGrad(Math.Atan(x_target / z_target)));
+		}
+		else
+		{
+			baseRotatorAngle = radianToGrad(Math.Atan(x_target / z_target));
+		}
 		// find arctan of x and z
 		// result of Atan is in radians; so convert it to degree
-		float baseRotatorAngle = radianToGrad(Math.Atan(x_target / z_target));
+
 		// change localRotation of the baseRotator
 		if (baseRotatorAngle >= baseRotatorMinAngle && baseRotatorAngle <= baseRotatorMaxAngle)
 		{
@@ -292,7 +319,7 @@ public class InverseKinematics : MonoBehaviour
 			float endEffector_y = (float)(endEffector_z * Math.Sin(gradToRadian(handRotation)));
 			y_target += endEffectorOffset_y + endEffector_y;
 		}
-		
+
 		l3 = 0.147f + endEffector_z;
 
 		//hypotenuse of z and x
@@ -317,7 +344,7 @@ public class InverseKinematics : MonoBehaviour
 		}
 
 		l3Angle = 90 - l3Angle;
-		
+
 
 		// apply rotations
 		// 
