@@ -81,6 +81,7 @@ public class CollisionDetection : MonoBehaviour
 			GameObject obj = collision.gameObject;
 			frameCountToDropObject = new ValueTuple<GameObject, int>(obj, 0);
 			obj.transform.parent = this.transform;
+			obj.transform.localRotation = Quaternion.Euler(0, 0, 0);
 			obj.GetComponent<Rigidbody>().isKinematic = true;
 
 			isHolding = true;
