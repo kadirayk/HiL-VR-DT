@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using Assets.PDDL;
 using System.Text;
 using System;
 using System.Threading.Tasks;
 using Assets.Util;
+using RosSharp.RosBridgeClient;
 
 public class WorldState : MonoBehaviour, IListener, IProblemState
 {
@@ -753,6 +752,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		GameObject table = GameObject.Find("Table");
 		tableHeight = table.GetComponent<Renderer>().bounds.max.y;
 		mr = GameObject.FindObjectOfType<MovementRecorder>();
+		LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
+		graspDetection.updateObjectVisualization();
 	}
 
 	// Update is called once per frame
