@@ -1,7 +1,11 @@
-﻿using System.Collections;
+﻿using Assets.PDDL;
+using RosSharp.RosBridgeClient;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using Assets.PDDL.Scripts;
 
 public class MovementRecorder : MonoBehaviour
 {
@@ -12,7 +16,9 @@ public class MovementRecorder : MonoBehaviour
 	public Transform target;
 	public Transform suctionCup;
 	public CollisionDetection collisionDetection;
-
+	GameObject endEffector;
+	private ServiceCaller sc;
+	private bool suctionState;
 
 	Queue<RobotArmState> recordedMovements = new Queue<RobotArmState>();
 	private bool isRecording = false;
@@ -26,6 +32,7 @@ public class MovementRecorder : MonoBehaviour
 	public void StopRecording()
 	{
 		isRecording = false;
+		Debug.Log("command count:" + recordedMovements.Count);
 	}
 
 	public void Replay()
@@ -72,11 +79,22 @@ public class MovementRecorder : MonoBehaviour
 		this.recordedMovements = recordedMovements;
 	}
 
+	public Queue<RobotArmState> GetRecordedMovements() {
+		return recordedMovements;
+	}
+
+	void OnDestroy()
+	{
+		
+	}
+
 	// Start is called before the first frame update
 	void Start()
 	{
 		collisionDetection = GameObject.FindObjectOfType<CollisionDetection>();
+		endEffector = GameObject.Find("magician_end_effector");
 		checkObjectsForNull();
+		sc = ServiceCaller.getInstance();
 	}
 
 	// Update is called once per frame
@@ -89,7 +107,7 @@ public class MovementRecorder : MonoBehaviour
 				l2_arm.transform.localRotation.eulerAngles.x,
 				l3_arm.transform.localRotation.eulerAngles.x,
 				collisionDetection.isSuctionActive(),
-				target.transform.position);
+				endEffector.transform.position);
 			recordedMovements.Enqueue(state);
 		}
 
@@ -108,6 +126,11 @@ public class MovementRecorder : MonoBehaviour
 				{
 					collisionDetection.Drop();
 				}
+				//Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition);
+				//Debug.Log("in replay pose:" + UnityUtil.PositionToString(dobotPose));
+				//sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+				//sc.SetEndEffectorSuctionCup(state.SuctionActive);
+				Actuator actuator = new Actuator();
 				isReplayFinished = false;
 			}
 			else
