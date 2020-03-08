@@ -69,7 +69,7 @@ public class ObjectVisualizer : MonoBehaviour
 
 
 			GameObject table = GameObject.Find("Table");
-			GameObject cube = Instantiate(cubePrefab, new UnityEngine.Vector3(0.9f - graspPoint.z, graspPoint.y + table.GetComponent<Renderer>().bounds.max.y - 0.0125f, 1.2f + graspPoint.x), rotation);
+			GameObject cube = Instantiate(cubePrefab, new UnityEngine.Vector3(0.85f - graspPoint.z, graspPoint.y + table.GetComponent<Renderer>().bounds.max.y - 0.0125f, 1.2f + graspPoint.x), rotation);
 			cube.name = "cube_" + i;
 			cube.transform.localScale = new UnityEngine.Vector3(0.025f, 0.025f, 0.025f);
 			cube.GetComponent<Renderer>().material.color = color;
