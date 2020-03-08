@@ -6,6 +6,8 @@ using System;
 using System.Threading.Tasks;
 using Assets.Util;
 using RosSharp.RosBridgeClient;
+using Assets.PDDL;
+using Assets.PDDL.Scripts;
 
 public class WorldState : MonoBehaviour, IListener, IProblemState
 {
@@ -33,6 +35,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	private static readonly int SOLVE_TIMEOUT = Configuration.getInt("SOLVE_TIMEOUT");
 	private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
 	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
+	Queue<KeyValuePair<string, Vector3>> commands = new Queue<KeyValuePair<string, Vector3>>();
+
 
 
 	public void Initial()
@@ -340,6 +344,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		float blockHeight = 0.029f; //blockInHand.GetComponent<Renderer>().bounds.max.y - blockInHand.GetComponent<Renderer>().bounds.min.y;
 		float halfHeight = 0.0125f;
 		Vector3 target = new Vector3(targetBlock.transform.position.x, targetBlock.transform.position.y + halfHeight + blockHeight, targetBlock.transform.position.z);
+		commands.Enqueue(new KeyValuePair<string, Vector3>("stack", target));
 		moveToPos(target, true);
 		drop();
 		jump(false);
@@ -369,8 +374,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
 			{
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
-				Vector3 target = new Vector3(block.transform.position.x, block.transform.position.y + 0.013f, block.transform.position.z);
+				Vector3 target = new Vector3(block.transform.position.x - 0.003f, block.transform.position.y + 0.013f, block.transform.position.z);
+				commands.Enqueue(new KeyValuePair<string, Vector3>("pick-up", target));
 				jump(true);
+				moveToPos(target + new Vector3(0, 0.06f, 0), true);
 				moveToPos(target, true);
 				jump(true);
 			}
@@ -405,6 +412,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
 				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
 				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
+				commands.Enqueue(new KeyValuePair<string, Vector3>("place", target));
+				moveToPos(target + new Vector3(0, 0.03f, 0), true);
 				moveToPos(target, true);
 				drop();
 				jump(false);
@@ -436,32 +445,32 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		float upperArmDifference = angleTarget[2] - l3Start;
 
 
-		while (Math.Abs(baseRotatorDifference) > 0.250 && Math.Abs(lowerArmDifference) > 0.25 && Math.Abs(upperArmDifference) > 0.25)
+		while (Math.Abs(baseRotatorDifference) > 0.1250 && Math.Abs(lowerArmDifference) > 0.125 && Math.Abs(upperArmDifference) > 0.125)
 		{
 			//Debug.Log(baseRotatorDifference);
 			if (baseRotatorDifference < 0)
 			{
-				baseAngle -= 0.5f;
+				baseAngle -= 0.25f;
 			}
 			else
 			{
-				baseAngle += 0.5f;
+				baseAngle += 0.25f;
 			}
 			if (lowerArmDifference < 0)
 			{
-				l2Start -= 0.5f;
+				l2Start -= 0.25f;
 			}
 			else
 			{
-				l2Start += 0.5f;
+				l2Start += 0.25f;
 			}
 			if (upperArmDifference < 0)
 			{
-				l3Start -= 0.5f;
+				l3Start -= 0.25f;
 			}
 			else
 			{
-				l3Start += 0.5f;
+				l3Start += 0.25f;
 			}
 
 			RobotArmState state = new RobotArmState(
@@ -561,48 +570,6 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 		startAngles = angleTarget;
 		endPos = target;
-	}
-
-
-
-	public void findActionTarget(string pos)
-	{
-		foreach (GameObject position in positions)
-		{
-			if (pos.Equals("pos" + position.GetComponentInChildren<TextMesh>().text))
-			{
-				Vector3 target = position.transform.position + new Vector3(-0.025f, 0.01f, 0.0125f);
-				InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
-				actionTarget = ik.GetAnglesForPosition(target);
-			}
-			//str.Append(findObjectLocations(movable, stationary));
-			//Vector3 relative = stationary.transform.InverseTransformPoint(movable.transform.position);
-			//Debug.Log(stationary.name + ":" + UnityUtil.PositionToString(relative));
-		}
-
-		/*
-		if (pos.Equals("posA", System.StringComparison.InvariantCultureIgnoreCase))
-		{
-			actionTarget[0] = -34;
-			actionTarget[1] = 56;
-			actionTarget[2] = -25;
-			//210 59 38
-			// -37 56 -25 
-		}
-		else if (pos.Equals("posC", System.StringComparison.InvariantCultureIgnoreCase))
-		{
-			actionTarget[0] = 4;
-			actionTarget[1] = 37;
-			actionTarget[2] = 32;
-			//172 48 38
-			// 4 37 32
-		}
-		else if (pos.Equals("reset")) 
-		{
-			actionTarget[0] = 182;
-			actionTarget[1] = 4;
-			actionTarget[2] = 4;
-		}*/
 	}
 
 
@@ -709,17 +676,6 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 		}
 		return str.ToString();
-
-		//if (objMin.x > minA.x && objMin.z > minA.z && objMax.x < maxA.x && objMax.z < maxA.z)
-		//{
-		//	string objName = pddlObj.gameObject.name;
-		//	if (objName.Contains("(Clone)"))
-		//	{
-		//		objName = objName.Replace("(Clone)", "");
-		//	}
-		//	str.Append("(at ").Append(objName).Append(" pos").Append(position.GetComponentInChildren<TextMesh>().text).Append(")");
-		//}
-		//return str.ToString();
 	}
 
 	public void Register(GameObject gameObject)
@@ -736,7 +692,17 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	// Start is called before the first frame update
 	void Start()
 	{
+
+		//Debug.Log("A:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(260,100,-15))));
+		//Debug.Log("B:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -15))));
+		//Debug.Log("C:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -70))));
+
 		positions = GameObject.FindGameObjectsWithTag("Position");
+		foreach (GameObject pos in positions)
+		{
+			Debug.Log("converted:" + UnityUtil.PositionToString(UnityUtil.VRToDobotArm(pos.transform.position)));
+		}
+
 		IList<GameObject> putPos = GameObject.FindGameObjectsWithTag("PutDownPos");
 		foreach (GameObject obj in putPos)
 		{
@@ -749,24 +715,50 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		endEffector = GameObject.Find("magician_end_effector");
 		endPos = endEffector.transform.position;
 		//gameObjects.AddRange(GameObject.FindGameObjectsWithTag("PDDLObject"));
+		Debug.Log(UnityUtil.PositionToString(endPos));
+		//Debug.Log(UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(0, 147, 135))));
+		//Debug.Log(UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(147, 0, 135))));
+		Debug.Log(UnityUtil.PositionToString(UnityUtil.VRToDobotArm(endPos)));
 		GameObject table = GameObject.Find("Table");
 		tableHeight = table.GetComponent<Renderer>().bounds.max.y;
 		mr = GameObject.FindObjectOfType<MovementRecorder>();
-		LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
-		graspDetection.updateObjectVisualization();
+
+		ServiceCaller sc = ServiceCaller.getInstance();
+		sc.SetPTPCmd(1, 147, 0, 135, 0, false);
 	}
+
+	float timer = 0.0f;
+	bool once = true;
+	bool calcTime = true;
+	int seconds = 0;
 
 	// Update is called once per frame
 	void Update()
 	{
+		if (calcTime)
+		{
+			timer += Time.deltaTime;
+			seconds = (int)timer % 60;
+		}
+		if (once && seconds >= 10)
+		{
+			LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
+			graspDetection.updateObjectVisualization();
+			once = false;
+			calcTime = false;
+		}
+
 		if (shouldSolve)
 		{
 			if (solutionLines.Count != 0 && mr.isReplayDone())
 			{
 				string line = solutionLines.Dequeue();
 				divideActions(line);
+				Queue<RobotArmState> copiedMovements = new Queue<RobotArmState>(plannedMovements);
 				mr.SetRecordedMovements(plannedMovements);
 				mr.Replay();
+				//Actuator actuator = new Actuator();
+				//actuator.executeCommands(commands);
 			}
 			else if (solutionLines.Count == 0 && mr.isReplayDone())
 			{
@@ -781,100 +773,5 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 
 		}
-
-		/*
-		if (actionQueue.Count != 0)
-		{
-
-			string pos = actionQueue.Peek();
-			findActionTarget(pos);
-
-			float baseAngle = 0;
-			if (baseRotator.transform.rotation.eulerAngles.y > 180)
-			{
-				baseAngle = baseRotator.transform.rotation.eulerAngles.y - 360;
-			}
-			else
-			{
-				baseAngle = baseRotator.transform.rotation.eulerAngles.y;
-			}
-
-			float baseRotatorDifference = actionTarget[0] - baseAngle;
-			float lowerArmDifference = actionTarget[1] - lowerArm.transform.rotation.eulerAngles.x;
-			float upperArmDifference = actionTarget[2] - upperArm.transform.rotation.eulerAngles.x;
-			bool baseDone = false;
-			bool upperDone = false;
-			bool lowerDone = false;
-
-			if (Math.Abs(baseRotatorDifference) > 0.125)
-			{
-				Debug.Log(baseRotatorDifference);
-				if (baseRotatorDifference < 0)
-				{
-					baseRotator.transform.Rotate(0, -0.25f, 0);
-				}
-				else
-				{
-					baseRotator.transform.Rotate(0, 0.25f, 0);
-				}
-				System.Threading.Thread.Sleep(20);
-			}
-			else
-			{
-				baseDone = true;
-			}
-
-			if (baseDone)
-			{
-				Debug.Log("baseDone " + lowerArmDifference);
-				if (Math.Abs(lowerArmDifference) > 0.125)
-				{
-					if (lowerArmDifference < 0)
-					{
-						lowerArm.transform.Rotate(-0.25f, 0, 0);
-						hand.transform.Rotate(0.25f, 0, 0);
-					}
-					else
-					{
-						lowerArm.transform.Rotate(0.25f, 0, 0);
-						hand.transform.Rotate(-0.25f, 0, 0);
-					}
-				}
-				else
-				{
-					lowerDone = true;
-				}
-
-				if (lowerDone)
-				{
-					Debug.Log("lowerDone " + upperArmDifference);
-					if (Math.Abs(upperArmDifference) > 0.125)
-					{
-						if (upperArmDifference < 0)
-						{
-							upperArm.transform.Rotate(-0.25f, 0, 0);
-							hand.transform.Rotate(0.25f, 0, 0);
-						}
-						else
-						{
-							upperArm.transform.Rotate(0.25f, 0, 0);
-							hand.transform.Rotate(-0.25f, 0, 0);
-						}
-					}
-					else
-					{
-						upperDone = true;
-					}
-				}
-			}
-			animationDone = baseDone && lowerDone && upperDone;
-			if (animationDone)
-			{
-				Debug.Log("animationDone");
-				actionQueue.Dequeue();
-				animationDone = false;
-				System.Threading.Thread.Sleep(500);
-			}
-		}*/
 	}
 }
