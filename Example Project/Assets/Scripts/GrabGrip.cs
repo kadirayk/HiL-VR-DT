@@ -15,14 +15,18 @@ public class GrabGrip : MonoBehaviour
 		cd = GameObject.FindObjectOfType<CollisionDetection>();				
 	}
 
-
-	// Update is called once per frame
 	void Update()
 	{
 
 		if (grabAction.GetStateDown(handType))
 		{
-			Debug.Log("drop in hand");
+			Debug.Log("drop in grip down");
+			cd.Drop();
+		}
+
+		if (grabAction.GetStateUp(handType))
+		{
+			Debug.Log("drop in grip up");
 			cd.Drop();
 		}
 	}

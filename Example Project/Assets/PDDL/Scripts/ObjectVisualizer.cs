@@ -9,7 +9,8 @@ using SimpleJSON;
 public class ObjectVisualizer : MonoBehaviour
 {
 	DetectedObjects detectedObjects;
-	static readonly string demoFile = @"grasp_detection.json";
+	static readonly string demoFile = @"grasp_detection_RBY.json";
+	static readonly int objCount = 3;
 	public GameObject cubePrefab;
 
 	// Start is called before the first frame update
@@ -19,7 +20,7 @@ public class ObjectVisualizer : MonoBehaviour
 		JSONNode data = JSON.Parse(json);
 
 		int i = 0;
-		DetectedObject[] objs = new DetectedObject[10];
+		DetectedObject[] objs = new DetectedObject[objCount];
 		foreach (JSONNode detectedObject in data["objects"])
 		{
 			DetectedObject obj = new DetectedObject();

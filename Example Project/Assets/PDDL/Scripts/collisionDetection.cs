@@ -9,18 +9,26 @@ public class CollisionDetection : MonoBehaviour
 
 	private bool shouldDrop = false;
 
+	private bool suctionActive = false;
+
 	private bool isAutomatedMode = false;
 
 	ValueTuple<GameObject, int> frameCountToDropObject;
 
+	public void setSuction(bool suct)
+	{
+		suctionActive = suct;
+	}
+
 	public bool isSuctionActive()
 	{
-		return !shouldDrop;
+		return suctionActive;
+		//return !shouldDrop;
 	}
 
 	public void Drop()
 	{
-		//Debug.Log("drop called");
+		Debug.Log("drop called");
 		shouldDrop = true;
 	}
 
@@ -51,7 +59,7 @@ public class CollisionDetection : MonoBehaviour
 
 	private void Update()
 	{
-		if (isHolding && shouldDrop)
+		if (isHolding && !suctionActive)
 		{
 			//Debug.Log("update col");
 			GameObject obj = frameCountToDropObject.Item1; //this.transform.GetChild(this.transform.childCount - 1).gameObject;
@@ -75,7 +83,7 @@ public class CollisionDetection : MonoBehaviour
 	{
 		//Debug.Log("col enter1 " + isHolding);
 		Debug.Log("collision enter");
-		if (!isHolding)
+		if (!isHolding && suctionActive)
 		{
 			//Debug.Log("col enter2");
 			GameObject obj = collision.gameObject;

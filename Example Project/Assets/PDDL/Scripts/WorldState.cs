@@ -14,6 +14,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	List<GameObject> gameObjects = new List<GameObject>();
 	IList<GameObject> positions = new List<GameObject>();
 	private float tableHeight;
+	private float conveyorHeight;
 	private string initialState;
 	private string goalState;
 	public GameObject Cube;
@@ -37,7 +38,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
 	Queue<KeyValuePair<string, Vector3>> commands = new Queue<KeyValuePair<string, Vector3>>();
 
-
+	Dictionary<string, Vector3> initialBlockPositions = new Dictionary<string, Vector3>();
+	Dictionary<string, Quaternion> initialBlockRotations = new Dictionary<string, Quaternion>();
 
 	public void Initial()
 	{
@@ -47,6 +49,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		str.Append(")");
 		initialState = str.ToString();
 		Debug.Log(initialState);
+
+		foreach (GameObject movable in gameObjects)
+		{
+			initialBlockPositions[movable.name] = movable.transform.position;
+			initialBlockRotations[movable.name] = movable.transform.rotation;
+		}
 
 	}
 
@@ -89,7 +97,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		{
 			//if (!str.ToString().Contains(block.name)) // if object is not at a pos, and not ontable, it must be stacked on another object
 			//{
-			if (!isObjectOnTableLevel(block))
+			if (!isObjectOnTableLevel(block) && !isObjectOnConveyorLevel(block))
 			{ // higher than table level
 				foreach (GameObject other in gameObjects)
 				{
@@ -106,7 +114,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		// clear(block)
 		foreach (GameObject block in gameObjects)
 		{
-			Regex regex = new Regex("\\(on [A-Za-z0-9]* " + block.name + "\\)");
+			Regex regex = new Regex("\\(on [A-Za-z_*0-9]* " + block.name + "\\)");
 			Match match = regex.Match(str.ToString());
 			if (!match.Success)
 			{
@@ -149,6 +157,16 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		str.Append("))");
 		goalState = str.ToString();
 		Debug.Log(goalState);
+
+		// move blocks to initial positions
+
+		foreach (KeyValuePair<string, Vector3> entry in initialBlockPositions)
+		{
+			GameObject obj = GameObject.Find(entry.Key);
+			obj.transform.position = entry.Value;
+			obj.transform.rotation = initialBlockRotations[entry.Key];
+		}
+
 		//foreach (GameObject obj in gameObjects)
 		//{
 		//	Destroy(obj);
@@ -158,10 +176,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	public void Solve()
 	{
-		//string problem = createPDDLProblem();
-		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
-		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
-		cd.AutomatedMode(true);
+		string problem = createPDDLProblem();
+		System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
+		//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+		//cd.AutomatedMode(true);
 
 		//foreach (GameObject block in gameObjects)
 		//{
@@ -175,7 +193,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			WorkingDirectory = WORK_PATH + @"PDDLSolver",
 			WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
 			FileName = "cmd.exe",
-			Arguments = "/C java -jar PDDLSolver.jar domain.pddl problem.pddl"
+			Arguments = "/C python solver.py domain.pddl problem.pddl solution.txt"
 		};
 		process.StartInfo = startInfo;
 		process.Start();
@@ -194,7 +212,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		}
 		Debug.Log("solved in: " + i + " seconds");
 		process.Close();
+		System.Threading.Thread.Sleep(2000);
 		string[] lines = System.IO.File.ReadAllLines(WORK_PATH + @"PDDLSolver\solution.txt");
+		//List<string> cleanLines = cleanUpLines(lines);
 		//GameObject cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 init x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 		solutionLines = new Queue<string>();
@@ -226,42 +246,43 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	private void divideActions(String action)
 	{
-		if (action.StartsWith("place"))
+
+		if (action.StartsWith("(place"))
 		{
-			action = action.Replace("place(", "");
+			action = action.Replace("(place ", "");
 			action = action.Replace(")", "");
-			string blockName = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
-			string posName = action.Split(new string[] { "," }, StringSplitOptions.None)[1].Trim();
+			string blockName = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
+			string posName = action.Split(new string[] { " " }, StringSplitOptions.None)[1].Trim();
 			placeBlock(blockName, posName);
 
 		}
-		else if (action.StartsWith("pick-up"))
+		else if (action.StartsWith("(pick-up"))
 		{
-			action = action.Replace("pick-up(", "");
+			action = action.Replace("(pick-up ", "");
 			action = action.Replace(")", "");
 			String block = action.Trim();
 			pickupBlock(block);
 		}
-		else if (action.StartsWith("put-down"))
+		else if (action.StartsWith("(put-down"))
 		{
-			action = action.Replace("put-down(", "");
+			action = action.Replace("(put-down ", "");
 			action = action.Replace(")", "");
 			String block = action.Trim();
 			putdownBlock(block);
 		}
-		else if (action.StartsWith("stack"))
+		else if (action.StartsWith("(stack"))
 		{
-			action = action.Replace("stack(", "");
+			action = action.Replace("(stack ", "");
 			action = action.Replace(")", "");
-			string blockInHand = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
-			string targetBlock = action.Split(new string[] { "," }, StringSplitOptions.None)[1].Trim();
+			string blockInHand = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
+			string targetBlock = action.Split(new string[] { " " }, StringSplitOptions.None)[1].Trim();
 			stackBlock(blockInHand, targetBlock);
 		}
-		else if (action.StartsWith("unstack"))
+		else if (action.StartsWith("(unstack"))
 		{
-			action = action.Replace("unstack(", "");
+			action = action.Replace("(unstack ", "");
 			action = action.Replace(")", "");
-			string targetBlock = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
+			string targetBlock = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
 			pickupBlock(targetBlock);
 		}
 		//action = action.Replace("move(", "");
@@ -612,14 +633,14 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	public string createPDDLProblem()
 	{
 		StringBuilder problem = new StringBuilder("(define (problem dobot01)\n");
-		problem.Append("(:domain CUBES)\n");
+		problem.Append("(:domain BLOCKS)\n");
 		//problem.Append("(:objects cube1 cube2 - cube posA posB posC - position)\n");
 		problem.Append("(:objects ");
 		foreach (GameObject movable in gameObjects)
 		{
 			problem.Append(movable.gameObject.name.Replace("(Clone)", "")).Append(" ");
 		}
-		problem.Append("- cube\n");
+		problem.Append("- block\n");
 		foreach (GameObject pos in positions)
 		{
 			string label = "pos" + pos.GetComponentInChildren<TextMesh>().text;
@@ -653,6 +674,17 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		return false;
 	}
 
+	private Boolean isObjectOnConveyorLevel(GameObject obj)
+	{
+		Vector3 objMin = obj.GetComponent<Renderer>().bounds.min;
+		float baseVerticalPosition = objMin.y;
+		if (Math.Abs(baseVerticalPosition - conveyorHeight) < 0.015)
+		{
+			return true;
+		}
+		return false;
+	}
+
 	private string findObjectAtPosition(GameObject pddlObj, GameObject position)
 	{
 		Vector3 objMin = pddlObj.GetComponent<Renderer>().bounds.min;
@@ -663,7 +695,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		Vector3 centerA = position.GetComponent<Renderer>().bounds.center;
 
 		StringBuilder str = new StringBuilder();
-		if (isObjectOnTableLevel(pddlObj)) // obj is immediately above position, position is always on table
+		if (isObjectOnConveyorLevel(pddlObj)) // previosly isObjectOnTableLevel  obj is immediately above position, position is always on table
 		{
 			if (Math.Abs(objCenter.x - centerA.x) < Math.Abs(objMax.x - objMin.x) / 2 && Math.Abs(objCenter.z - centerA.z) < Math.Abs(objMax.z - objMin.z) / 2)
 			{
@@ -721,10 +753,14 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		Debug.Log(UnityUtil.PositionToString(UnityUtil.VRToDobotArm(endPos)));
 		GameObject table = GameObject.Find("Table");
 		tableHeight = table.GetComponent<Renderer>().bounds.max.y;
+		GameObject conveyor = GameObject.Find("Belt");
+		conveyorHeight = conveyor.GetComponent<Renderer>().bounds.max.y;
 		mr = GameObject.FindObjectOfType<MovementRecorder>();
 
 		ServiceCaller sc = ServiceCaller.getInstance();
 		sc.SetPTPCmd(1, 147, 0, 135, 0, false);
+
+		
 	}
 
 	float timer = 0.0f;
@@ -740,12 +776,14 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			timer += Time.deltaTime;
 			seconds = (int)timer % 60;
 		}
-		if (once && seconds >= 10)
+		if (once && seconds >= 4) // 10 for actual camera input
 		{
 			LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
 			graspDetection.updateObjectVisualization();
 			once = false;
 			calcTime = false;
+			// register initial state
+			Initial();
 		}
 
 		if (shouldSolve)
@@ -753,7 +791,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (solutionLines.Count != 0 && mr.isReplayDone())
 			{
 				string line = solutionLines.Dequeue();
+				Debug.Log("Deququed: " + line);
 				divideActions(line);
+				
 				Queue<RobotArmState> copiedMovements = new Queue<RobotArmState>(plannedMovements);
 				mr.SetRecordedMovements(plannedMovements);
 				mr.Replay();
@@ -762,6 +802,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			}
 			else if (solutionLines.Count == 0 && mr.isReplayDone())
 			{
+				Debug.Log("should solve replay done");
 				shouldSolve = false;
 				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 				cd.AutomatedMode(false);

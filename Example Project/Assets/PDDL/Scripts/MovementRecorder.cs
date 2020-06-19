@@ -122,10 +122,8 @@ public class MovementRecorder : MonoBehaviour
 				float handRotation = -l2_arm.transform.localRotation.eulerAngles.x - l3_arm.transform.localRotation.eulerAngles.x;
 				hand.transform.localRotation = Quaternion.Euler(handRotation, 0, 0);
 				suctionCup.transform.localRotation = Quaternion.Euler(0, -state.BaseAngle, 0);
-				if (!state.SuctionActive)
-				{
-					collisionDetection.Drop();
-				}
+				collisionDetection.setSuction(state.SuctionActive);
+				
 				//Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition);
 				//Debug.Log("in replay pose:" + UnityUtil.PositionToString(dobotPose));
 				//sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
@@ -140,7 +138,6 @@ public class MovementRecorder : MonoBehaviour
 				GameObject textObj = GameObject.Find("CurrentState_Text");
 				Text text = textObj.GetComponent<Text>();
 				text.text = "Replaying Done";
-				GameObject cube = GameObject.Find("RedCube1");
 			}
 		}
 	}
