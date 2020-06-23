@@ -19,6 +19,8 @@ public class MovementRecorder : MonoBehaviour
 	GameObject endEffector;
 	private ServiceCaller sc;
 	private bool suctionState;
+	UIStatus uiStatus;
+	private bool isAutoMode = false;
 
 	Queue<RobotArmState> recordedMovements = new Queue<RobotArmState>();
 	private bool isRecording = false;
@@ -74,6 +76,10 @@ public class MovementRecorder : MonoBehaviour
 		}
 	}
 
+	public void SetAutomatedMode(bool mode) {
+		isAutoMode = mode;
+	}
+
 	public void SetRecordedMovements(Queue<RobotArmState> recordedMovements)
 	{
 		this.recordedMovements = recordedMovements;
@@ -95,6 +101,7 @@ public class MovementRecorder : MonoBehaviour
 		endEffector = GameObject.Find("magician_end_effector");
 		checkObjectsForNull();
 		sc = ServiceCaller.getInstance();
+		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 	}
 
 	// Update is called once per frame
@@ -130,14 +137,20 @@ public class MovementRecorder : MonoBehaviour
 				//sc.SetEndEffectorSuctionCup(state.SuctionActive);
 				Actuator actuator = new Actuator();
 				isReplayFinished = false;
+				if (!isAutoMode)
+				{
+					uiStatus.setStatus("Replaying Movements");
+				}
 			}
 			else
 			{
 				isReplaying = false;
 				isReplayFinished = true;
-				GameObject textObj = GameObject.Find("CurrentState_Text");
-				Text text = textObj.GetComponent<Text>();
-				text.text = "Replaying Done";
+				if (!isAutoMode)
+				{
+					uiStatus.setStatus("Replaying Done");
+				}
+				
 			}
 		}
 	}

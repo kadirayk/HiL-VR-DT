@@ -1,7 +1,7 @@
 (define (problem dobot01)
 (:domain BLOCKS)
-(:objects cube_0 cube_1 cube_2 - block
+(:objects cube_yellow_0 cube_red_0 cube_blue_0 - block
 posred posblue posyellow - position)
-(:init (HANDEMPTY) (free posred)(free posblue)(free posyellow)(ontable cube_0)(ontable cube_1)(ontable cube_2)(clear cube_0)(clear cube_1)(clear cube_2))
-(:goal (and (at cube_1 posblue)(free posred)(free posyellow)(on cube_0 cube_2)(on cube_2 cube_1)(clear cube_0)))
+(:init (HANDEMPTY) (free posred)(free posblue)(free posyellow)(ontable cube_yellow_0)(ontable cube_red_0)(ontable cube_blue_0)(clear cube_yellow_0)(clear cube_red_0)(clear cube_blue_0))
+(:goal (and (at cube_red_0 posred)(at cube_blue_0 posblue)(at cube_yellow_0 posyellow)(clear cube_yellow_0)(clear cube_red_0)(clear cube_blue_0)))
 )

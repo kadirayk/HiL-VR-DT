@@ -40,6 +40,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	Dictionary<string, Vector3> initialBlockPositions = new Dictionary<string, Vector3>();
 	Dictionary<string, Quaternion> initialBlockRotations = new Dictionary<string, Quaternion>();
+	UIStatus uiStatus;
 
 	public void Initial()
 	{
@@ -49,6 +50,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		str.Append(")");
 		initialState = str.ToString();
 		Debug.Log(initialState);
+		uiStatus.setInitial(initialState);
 
 		foreach (GameObject movable in gameObjects)
 		{
@@ -157,6 +159,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		str.Append("))");
 		goalState = str.ToString();
 		Debug.Log(goalState);
+		uiStatus.setGoal(goalState);
 
 		// move blocks to initial positions
 
@@ -176,8 +179,10 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	public void Solve()
 	{
-		string problem = createPDDLProblem();
-		System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
+		mr.SetAutomatedMode(true);
+		uiStatus.setStatus("Solving");
+		//string problem = createPDDLProblem();
+		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
 		//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 		//cd.AutomatedMode(true);
 
@@ -218,15 +223,18 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//GameObject cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 init x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 		solutionLines = new Queue<string>();
+		StringBuilder stringBuilder = new StringBuilder();
 		foreach (string line in lines)
 		{
 			solutionLines.Enqueue(line);
 			Debug.Log(line);
+			stringBuilder.Append(line).Append("\n");
 			//divideActions(line);
 			//MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			//mr.SetRecordedMovements(plannedMovements);
 			//mr.Replay();
 		}
+		uiStatus.setSolution(stringBuilder.ToString());
 		shouldSolve = true;
 		//cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 end x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
@@ -728,7 +736,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//Debug.Log("A:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(260,100,-15))));
 		//Debug.Log("B:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -15))));
 		//Debug.Log("C:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -70))));
-
+		uiStatus =  GameObject.FindObjectOfType<UIStatus>();
 		positions = GameObject.FindGameObjectsWithTag("Position");
 		foreach (GameObject pos in positions)
 		{
@@ -760,13 +768,20 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		ServiceCaller sc = ServiceCaller.getInstance();
 		sc.SetPTPCmd(1, 147, 0, 135, 0, false);
 
-		
+
 	}
 
 	float timer = 0.0f;
 	bool once = true;
+	bool isInitialStateRegistered = false;
 	bool calcTime = true;
 	int seconds = 0;
+
+	public void Execute()
+	{
+		Actuator actuator = new Actuator();
+		actuator.executeCommands(commands);
+	}
 
 	// Update is called once per frame
 	void Update()
@@ -781,9 +796,13 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
 			graspDetection.updateObjectVisualization();
 			once = false;
-			calcTime = false;
+		}
+		if (!isInitialStateRegistered && seconds >= 6)
+		{
 			// register initial state
 			Initial();
+			isInitialStateRegistered = true;
+			calcTime = false;
 		}
 
 		if (shouldSolve)
@@ -792,13 +811,12 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			{
 				string line = solutionLines.Dequeue();
 				Debug.Log("Deququed: " + line);
+				uiStatus.setStatus(line);
 				divideActions(line);
-				
+
 				Queue<RobotArmState> copiedMovements = new Queue<RobotArmState>(plannedMovements);
 				mr.SetRecordedMovements(plannedMovements);
 				mr.Replay();
-				//Actuator actuator = new Actuator();
-				//actuator.executeCommands(commands);
 			}
 			else if (solutionLines.Count == 0 && mr.isReplayDone())
 			{
@@ -806,6 +824,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				shouldSolve = false;
 				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 				cd.AutomatedMode(false);
+				uiStatus.setStatus("Solution Done");
 
 				//foreach (GameObject block in gameObjects)
 				//{

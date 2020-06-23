@@ -15,6 +15,7 @@ namespace RosSharp.RosBridgeClient
 		private bool shouldUpdateVisualization;
 		public GameObject cubePrefab;
 		private Dictionary<string, MessageTypes.Geometry.Point> graspPositions = new Dictionary<string, MessageTypes.Geometry.Point>();
+		Dictionary<string, int> colorCounts = new Dictionary<string, int>();
 
 		protected override void Start()
 		{
@@ -39,6 +40,39 @@ namespace RosSharp.RosBridgeClient
 			isMessageReceived = true;
 		}
 
+		private string getColorName(Color color) {
+			float red = color.r;
+			float green = color.g;
+			float blue = color.b;
+			string colorName = "";
+			string name = "";
+			if (red - green > 0.12 && red - blue > 0.12)
+			{
+				colorName = "red";
+			}
+			else if (blue - red > 0.12 && blue - green > 0.12)
+			{
+				colorName = "blue";
+			} else if (green - red >0.12 && green - blue >0.12) {
+				colorName = "green";
+			}
+			else {
+				colorName = "yellow";
+			}
+			if (colorCounts.ContainsKey(colorName))
+			{
+				int count = colorCounts[colorName];
+				name = "cube_" + colorName + "_" + ++count;
+				colorCounts[colorName] = count;
+			}
+			else {
+				name = "cube_" + colorName + "_" + 0;
+				colorCounts[colorName] = 0;
+			}
+			
+			return name;
+		}
+
 		private void ProcessMessage()
 		{
 			int i = 0;
@@ -55,7 +89,7 @@ namespace RosSharp.RosBridgeClient
 				GameObject table = GameObject.Find("Table");
 				//GameObject cube = Instantiate(cubePrefab, new UnityEngine.Vector3(0.847f - graspPoint.z, graspPoint.y + table.GetComponent<Renderer>().bounds.max.y - 0.0125f, 1.18f + graspPoint.x), rotation);
 				GameObject cube = Instantiate(cubePrefab, UnityUtil.DobotArmToVR(graspPoint) + new Vector3(0,-0.0125f,0), rotation);
-				cube.name = "cube_" + i;
+				cube.name = getColorName(color); // "cube_" + i;
 				cube.transform.localScale = new UnityEngine.Vector3(0.025f, 0.025f, 0.025f);
 				cube.GetComponent<Renderer>().material.color = color;
 				graspPositions[cube.name] = grasp;

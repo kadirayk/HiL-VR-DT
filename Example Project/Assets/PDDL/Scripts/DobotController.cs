@@ -10,13 +10,14 @@ public class DobotController : MonoBehaviour
 	public GameObject LowerArm; // magician_link_2
 	public GameObject UpperArm; // magician_link_3
 	public GameObject DobotHand; // magician_link_4
+	UIStatus uiStatus;
 
 	Queue<RobotArmState> movements;
 
 	// Start is called before the first frame update
 	void Start()
 	{
-
+		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 	}
 
 	// Update is called once per frame
@@ -111,9 +112,10 @@ public class DobotController : MonoBehaviour
 		{
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.StartRecording();
-			GameObject textObj = GameObject.Find("CurrentState_Text");
-			Text text = textObj.GetComponent<Text>();
-			text.text = "Recording Movements";
+			uiStatus.setStatus("Recording Movements");
+			//GameObject textObj = GameObject.Find("CurrentState_Text");
+			//Text text = textObj.GetComponent<Text>();
+			//text.text = "Recording Movements";
 		}
 
 		if (Input.GetKeyDown(KeyCode.P))
@@ -121,27 +123,32 @@ public class DobotController : MonoBehaviour
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.StopRecording();
 			movements = new Queue<RobotArmState>(mr.GetRecordedMovements());
-			GameObject textObj = GameObject.Find("CurrentState_Text");
-			Text text = textObj.GetComponent<Text>();
-			text.text = "Stopped Recording";
+			uiStatus.setStatus("Stopped Recording");
+			//GameObject textObj = GameObject.Find("CurrentState_Text");
+			//Text text = textObj.GetComponent<Text>();
+			//text.text = "Stopped Recording";
 		}
 
 		if (Input.GetKeyDown(KeyCode.O))
 		{
 			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
 			mr.Replay();
-			GameObject textObj = GameObject.Find("CurrentState_Text");
-			Text text = textObj.GetComponent<Text>();
-			text.text = "Replaying";
+			uiStatus.setStatus("Replaying Movements");
+			//GameObject textObj = GameObject.Find("CurrentState_Text");
+			//Text text = textObj.GetComponent<Text>();
+			//text.text = "Replaying";
 		}
 
 		if (Input.GetKeyDown(KeyCode.E))
 		{
-			Actuator act = new Actuator();
-			act.execute(movements);
-			GameObject textObj = GameObject.Find("CurrentState_Text");
-			Text text = textObj.GetComponent<Text>();
-			text.text = "Executing";
+			WorldState ws = GameObject.FindObjectOfType<WorldState>();
+			ws.Execute();
+			uiStatus.setStatus("Executing");
+			//Actuator act = new Actuator();
+			//act.execute(movements);
+			//GameObject textObj = GameObject.Find("CurrentState_Text");
+			//Text text = textObj.GetComponent<Text>();
+			//text.text = "Executing";
 		}
 
 		if (Input.GetKeyDown(KeyCode.Space))
