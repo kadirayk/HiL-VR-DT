@@ -8,3 +8,113 @@ java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-16 11:08:00,200) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-16 11:25:34,934) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-18 10:24:16,213) ERROR [ORGraphSearch-worker-3] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-18 10:33:06,197) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-18 10:33:06,197) ERROR [ORGraphSearch-worker-1] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-20 13:07:49,636) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-02-20 22:49:51,850) ERROR [ORGraphSearch-worker-6] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 110 out of bounds for length 109
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-03-04 13:01:21,797) ERROR [ORGraphSearch-worker-3] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-03-04 13:43:11,850) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-03-05 20:54:50,855) ERROR [ORGraphSearch-worker-2] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+(2020-03-05 20:54:50,855) ERROR [ORGraphSearch-worker-3] [StandardBestFirstFactory.run:410] - An unexpected exception occurred while building nodes
+java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 0
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:498)
+	at ai.libs.jaicore.search.algorithms.standard.bestfirst.BestFirst$NodeBuilder.run(BestFirst.java:266)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)

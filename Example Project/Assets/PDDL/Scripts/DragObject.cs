@@ -7,7 +7,24 @@ public class DragObject : MonoBehaviour
 {
 	private Vector3 mOffset;
 	private float mZCoord;
+	private string target;
+	private InverseKinematics ik;
 
+	private void Start()
+	{
+		target = transform.parent.name;
+		if (target.Equals("DobotLoaderTargetIK"))
+		{
+			GameObject dobot = GameObject.Find("DobotLoader");
+			ik = dobot.GetComponent<InverseKinematics>();
+		}
+		else if (target.Equals("DobotRailTargetIK"))
+		{
+			GameObject dobot = GameObject.Find("DobotRail");
+			ik = dobot.GetComponent<InverseKinematics>();
+		}
+
+	}
 
 	void OnMouseDown()
 	{
@@ -27,12 +44,11 @@ public class DragObject : MonoBehaviour
 	void OnMouseDrag()
 	{
 		transform.position = GetMouseWorldPos() + mOffset;
-		InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
 		ik.DoIK();
 	}
 
 	private void OnMouseUp()
 	{
-		
+
 	}
 }

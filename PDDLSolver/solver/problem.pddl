@@ -1,0 +1,10 @@
+(define (problem dobot01)
+(:domain BLOCKS)
+(:objects cube_0 cube_1 cube_2 cube_3 cube_4 cube_5 cube_6 cube_7 cube_8 cube_9 - block
+pos11 pos12 pos13 pos21 pos22 pos23 pos31 pos32 pos33 - position)
+(:init (done)(HANDEMPTY) (loadfree) (free pos11)(free pos12)(free pos13)(free pos21)(free pos22)(free pos23)(free pos31)(free pos32)(free pos33)
+(ontable cube_0)(ontable cube_1)(ontable cube_2)(ontable cube_3)(ontable cube_4)(ontable cube_5)(ontable cube_6)(ontable cube_7)(ontable cube_8)(ontable cube_9)
+(clear cube_0)(clear cube_1)(clear cube_2)(clear cube_3)(clear cube_4)(clear cube_5)(clear cube_6)(clear cube_7)(clear cube_8)(clear cube_9))
+(:goal (and (at cube_1 pos21) (at cube_6 pos22) (at cube_8 pos23) (at cube_0 pos11) (at cube_2 pos12) (at cube_3 pos13) 
+(at cube_4 pos31) (at cube_7 pos32) (at cube_9 pos33) (on cube_5 cube_6)))
+)

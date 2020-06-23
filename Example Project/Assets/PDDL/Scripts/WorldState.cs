@@ -19,19 +19,28 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	public GameObject Cube;
 	float[] actionTarget = new float[3] { 180, 0, 0 };
 	bool performAnimation = false;
-	GameObject baseRotator;
-	GameObject lowerArm;
-	GameObject upperArm;
-	GameObject hand;
-	GameObject endEffector;
-	Vector3 endPos;
+	public GameObject dobotLoaderBaseRotator;
+	public GameObject dobotLoaderLowerArm;
+	public GameObject dobotLoaderUpperArm;
+	public GameObject dobotLoaderHand;
+	public GameObject dobotLoaderEndEffector;
+	InverseKinematics dobotLoaderIK;
+	public GameObject dobotRailBaseRotator;
+	public GameObject dobotRailLowerArm;
+	public GameObject dobotRailUpperArm;
+	public GameObject dobotRailHand;
+	public GameObject dobotRailEndEffector;
+	InverseKinematics dobotRailIK;
+	Vector3 dobotLoaderEndPos;
+	Vector3 dobotRailEndPos;
 	Queue<String> actionQueue = new Queue<string>();
 	bool animationDone = false;
-	Queue<RobotArmState> plannedMovements = new Queue<RobotArmState>();
-	float[] startAngles = new float[3];
+	Queue<RoboticSystemState> plannedMovements = new Queue<RoboticSystemState>();
+	float[] dobotLoaderStartAngles = new float[3];
+	float[] dobotRailStartAngles = new float[3];
 	bool shouldSolve = false;
 	Queue<String> solutionLines;
-	MovementRecorder mr;
+	MovementRecorder movementRecorder;
 	private static readonly int SOLVE_TIMEOUT = Configuration.getInt("SOLVE_TIMEOUT");
 	private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
 	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
@@ -160,8 +169,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	{
 		//string problem = createPDDLProblem();
 		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
-		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
-		cd.AutomatedMode(true);
+		//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+		//cd.AutomatedMode(true);
 
 		//foreach (GameObject block in gameObjects)
 		//{
@@ -175,7 +184,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			WorkingDirectory = WORK_PATH + @"PDDLSolver",
 			WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
 			FileName = "cmd.exe",
-			Arguments = "/C java -jar PDDLSolver.jar domain.pddl problem.pddl"
+			Arguments = "/C python solver.py domain.pddl problem.pddl solution.txt"
 		};
 		process.StartInfo = startInfo;
 		process.Start();
@@ -194,7 +203,9 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		}
 		Debug.Log("solved in: " + i + " seconds");
 		process.Close();
+		System.Threading.Thread.Sleep(2000);
 		string[] lines = System.IO.File.ReadAllLines(WORK_PATH + @"PDDLSolver\solution.txt");
+		//List<string> cleanLines = cleanUpLines(lines);
 		//GameObject cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 init x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 		solutionLines = new Queue<string>();
@@ -212,69 +223,112 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//Debug.Log("redcube1 end x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 	}
 
-	private async void waiter()
+	private List<string> cleanUpLines(string[] lines)
 	{
-		MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
-		mr.SetRecordedMovements(plannedMovements);
-		Task task = Task.Run(() => mr.Replay());
-		mr.Replay();
-		while (!mr.isReplayDone())
-		{
-			await Task.Delay(25);
+		List<string> cleanLines = new List<string>();
+		Regex solutionLineRegex = new Regex(@"\d\d:");
+		foreach (string line in lines) {
+			if (solutionLineRegex.IsMatch(line))
+			{
+				string cleanLine = Regex.Replace(line, @"\d\d: \( *", "(");
+				cleanLine = Regex.Replace(cleanLine, @" \[\d\]", "");
+				cleanLines.Add(cleanLine);
+			}
 		}
-	}
 
+		return cleanLines;
+	}
 	private void divideActions(String action)
 	{
-		if (action.StartsWith("place"))
+		if (action.StartsWith("(load"))
 		{
-			action = action.Replace("place(", "");
+			action = action.Replace("(load ", "");
 			action = action.Replace(")", "");
-			string blockName = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
-			string posName = action.Split(new string[] { "," }, StringSplitOptions.None)[1].Trim();
-			placeBlock(blockName, posName);
+			String block = action.Trim();
+			dobotLoaderPickupBlock(block);
+			dobotLoaderPlaceBlock(block, "posload");
+		}
+		else if (action.StartsWith("(moveonconveyor"))
+		{
+			action = action.Replace("(moveonconveyor ", "");
+			action = action.Replace(")", "");
+			String block = action.Trim();
+			moveOnConveyor(block);
+		}
+		else if (action.StartsWith("(place"))
+		{
+			action = action.Replace("(place ", "");
+			action = action.Replace(")", "");
+			string blockName = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
+			string posName = action.Split(new string[] { " " }, StringSplitOptions.None)[1].Trim();
+			dobotRailPlaceBlock(blockName, posName);
 
 		}
-		else if (action.StartsWith("pick-up"))
+		else if (action.StartsWith("(pick-up"))
 		{
-			action = action.Replace("pick-up(", "");
+			action = action.Replace("(pick-up ", "");
 			action = action.Replace(")", "");
 			String block = action.Trim();
-			pickupBlock(block);
+			dobotRailPickupBlock(block);
 		}
-		else if (action.StartsWith("put-down"))
+		else if (action.StartsWith("(put-down"))
 		{
-			action = action.Replace("put-down(", "");
+			action = action.Replace("(put-down ", "");
 			action = action.Replace(")", "");
 			String block = action.Trim();
-			putdownBlock(block);
+			dobotRailPutdownBlock(block);
 		}
-		else if (action.StartsWith("stack"))
+		else if (action.StartsWith("(stack"))
 		{
-			action = action.Replace("stack(", "");
+			action = action.Replace("(stack ", "");
 			action = action.Replace(")", "");
-			string blockInHand = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
-			string targetBlock = action.Split(new string[] { "," }, StringSplitOptions.None)[1].Trim();
-			stackBlock(blockInHand, targetBlock);
+			string blockInHand = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
+			string targetBlock = action.Split(new string[] { " " }, StringSplitOptions.None)[1].Trim();
+			dobotRailStackBlock(blockInHand, targetBlock);
 		}
-		else if (action.StartsWith("unstack"))
+		else if (action.StartsWith("(unstack"))
 		{
-			action = action.Replace("unstack(", "");
+			action = action.Replace("(unstack ", "");
 			action = action.Replace(")", "");
-			string targetBlock = action.Split(new string[] { "," }, StringSplitOptions.None)[0].Trim();
-			pickupBlock(targetBlock);
+			string targetBlock = action.Split(new string[] { " " }, StringSplitOptions.None)[0].Trim();
+			dobotRailPickupBlock(targetBlock);
 		}
-		//action = action.Replace("move(", "");
-		//action = action.Replace(")", "");
-		//string from = action.Split(new string[] { "," }, StringSplitOptions.None)[1].Trim();
-		//string to = action.Split(new string[] { "," }, StringSplitOptions.None)[2].Trim();
-		////actionQueue.Enqueue("reset");
-		//actionQueue.Enqueue(from);
-		////actionQueue.Enqueue("reset");
-		//actionQueue.Enqueue(to);
 	}
 
-	private void putdownBlock(string blockName)
+	private void moveOnConveyor(string blockName)
+	{
+		GameObject targetBlock = null;
+		foreach (GameObject block in gameObjects)
+		{
+			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				targetBlock = block;
+			}
+		}
+
+		if (targetBlock == null)
+		{
+			throw new Exception("Target Block not Found in gameobjects");
+		}
+
+		float targetX = 1.5f;
+		float startX = targetBlock.transform.position.x;
+
+		while (startX<targetX) {
+			startX+=0.001f;
+			RobotArmState dobotLoaderState = new RobotArmState(
+					dobotLoaderStartAngles[0],
+					dobotLoaderStartAngles[1],
+					dobotLoaderStartAngles[2],
+					false,
+					dobotLoaderEndPos);
+			RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+			RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+			plannedMovements.Enqueue(systemState);
+		}
+	}
+
+	private void dobotRailPutdownBlock(string blockName)
 	{
 		GameObject targetBlock = null;
 		foreach (GameObject block in gameObjects)
@@ -301,16 +355,16 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
 				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
 				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
-				moveToPos(target, true);
-				drop();
-				jump(false);
+				dobotRailMoveToPos(target, true);
+				dobotRailDrop();
+				dobotRailJump(false);
 				putDownPositions[pos] = false;
 				break;
 			}
 		}
 	}
 
-	private void stackBlock(string blockInHandName, string targetBlockName)
+	private void dobotRailStackBlock(string blockInHandName, string targetBlockName)
 	{
 		GameObject blockInHand = null;
 		GameObject targetBlock = null;
@@ -345,29 +399,59 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		float halfHeight = 0.0125f;
 		Vector3 target = new Vector3(targetBlock.transform.position.x, targetBlock.transform.position.y + halfHeight + blockHeight, targetBlock.transform.position.z);
 		commands.Enqueue(new KeyValuePair<string, Vector3>("stack", target));
-		moveToPos(target, true);
-		drop();
-		jump(false);
+		dobotRailMoveToPos(target, true);
+		dobotRailDrop();
+		dobotRailJump(false);
 
 	}
 
-	private void jump(Boolean suction)
+	private void dobotLoaderJump(Boolean suction)
 	{
-		float diff = 1.0f - endPos.y;
-		endPos += new Vector3(0, diff, 0);
-		moveToPos(endPos, suction);
+		float diff = 1.0f - dobotLoaderEndPos.y;
+		dobotLoaderEndPos += new Vector3(0, diff, 0);
+		dobotLoaderMoveToPos(dobotLoaderEndPos, suction);
 	}
 
-	private void drop()
+	private void dobotRailJump(Boolean suction)
+	{
+		float diff = 1.0f - dobotRailEndPos.y;
+		dobotRailEndPos += new Vector3(0, diff, 0);
+		dobotRailMoveToPos(dobotRailEndPos, suction);
+	}
+
+	private void dobotLoaderDrop()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			RobotArmState state = new RobotArmState(startAngles[0], startAngles[1], startAngles[2], false, endPos);
-			plannedMovements.Enqueue(state);
+			RobotArmState dobotLoaderState = new RobotArmState(
+					dobotLoaderStartAngles[0],
+					dobotLoaderStartAngles[1],
+					dobotLoaderStartAngles[2],
+					false,
+					dobotLoaderEndPos);
+			RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+			RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+			plannedMovements.Enqueue(systemState);
 		}
 	}
 
-	private void pickupBlock(String blockName)
+	private void dobotRailDrop()
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			RobotArmState dobotLoaderState = new RobotArmState(
+					dobotLoaderStartAngles[0],
+					dobotLoaderStartAngles[1],
+					dobotLoaderStartAngles[2],
+					false,
+					dobotLoaderEndPos);
+			RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+			RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+			plannedMovements.Enqueue(systemState);
+		}
+	}
+
+	private void dobotLoaderPickupBlock(String blockName)
 	{
 		foreach (GameObject block in gameObjects)
 		{
@@ -376,15 +460,32 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
 				Vector3 target = new Vector3(block.transform.position.x - 0.003f, block.transform.position.y + 0.013f, block.transform.position.z);
 				commands.Enqueue(new KeyValuePair<string, Vector3>("pick-up", target));
-				jump(true);
-				moveToPos(target + new Vector3(0, 0.06f, 0), true);
-				moveToPos(target, true);
-				jump(true);
+				dobotLoaderJump(true);
+				dobotLoaderMoveToPos(target + new Vector3(0, 0.06f, 0), true);
+				dobotLoaderMoveToPos(target, true);
+				dobotLoaderJump(true);
 			}
 		}
 	}
 
-	private void placeBlock(String blockName, String posName)
+	private void dobotRailPickupBlock(String blockName)
+	{
+		foreach (GameObject block in gameObjects)
+		{
+			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
+				Vector3 target = new Vector3(block.transform.position.x - 0.003f, block.transform.position.y + 0.013f, block.transform.position.z);
+				commands.Enqueue(new KeyValuePair<string, Vector3>("pick-up", target));
+				dobotRailJump(true);
+				dobotRailMoveToPos(target + new Vector3(0, 0.06f, 0), true);
+				dobotRailMoveToPos(target, true);
+				dobotRailJump(true);
+			}
+		}
+	}
+
+	private void dobotLoaderPlaceBlock(String blockName, String posName)
 	{
 		GameObject targetBlock = null;
 		foreach (GameObject block in gameObjects)
@@ -413,23 +514,60 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
 				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
 				commands.Enqueue(new KeyValuePair<string, Vector3>("place", target));
-				moveToPos(target + new Vector3(0, 0.03f, 0), true);
-				moveToPos(target, true);
-				drop();
-				jump(false);
+				dobotLoaderMoveToPos(target + new Vector3(0, 0.03f, 0), true);
+				dobotLoaderMoveToPos(target, true);
+				dobotLoaderDrop();
+				dobotLoaderJump(false);
 			}
 		}
 	}
 
-	private void moveToPos(Vector3 target, Boolean suction)
+	private void dobotRailPlaceBlock(String blockName, String posName)
 	{
-		InverseKinematics ik = GameObject.FindObjectOfType<InverseKinematics>();
-		float[] angleTarget = ik.GetAnglesForPosition(target);
-		angleTarget = ik.GetAnglesForPositionCorrection(target, angleTarget);
-		angleTarget = ik.GetAnglesForPositionCorrection(target, angleTarget);
-		float baseStart = startAngles[0];
-		float l2Start = startAngles[1];
-		float l3Start = startAngles[2];
+		GameObject targetBlock = null;
+		foreach (GameObject block in gameObjects)
+		{
+			if (blockName.Equals(block.name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				targetBlock = block;
+			}
+		}
+
+		if (targetBlock == null)
+		{
+			throw new Exception("Target Block not Found in gameobjects");
+		}
+
+		foreach (GameObject pos in positions)
+		{
+			string label = "pos" + pos.GetComponentInChildren<TextMesh>().text;
+			if (posName.Equals(label, StringComparison.InvariantCultureIgnoreCase))
+			{
+				//float blockHeight = targetBlock.GetComponent<Renderer>().bounds.max.y - targetBlock.GetComponent<Renderer>().bounds.min.y;
+				//float blockTop = block.GetComponent<Renderer>().bounds.max.y - block.GetComponent<Renderer>().bounds.min.y;
+				Vector3 target = new Vector3(pos.transform.position.x, pos.transform.position.y + 0.027f, pos.transform.position.z);
+				//Debug.Log("center x:" + pos.GetComponent<Renderer>().bounds.center.x + " y:" + pos.GetComponent<Renderer>().bounds.center.y + " z:" + pos.GetComponent<Renderer>().bounds.center.z);
+				//Debug.Log("max x:" + pos.GetComponent<Renderer>().bounds.max.x + " y:" + pos.GetComponent<Renderer>().bounds.max.y + " z:" + pos.GetComponent<Renderer>().bounds.max.z);
+				//Debug.Log("min x:" + pos.GetComponent<Renderer>().bounds.min.x + " y:" + pos.GetComponent<Renderer>().bounds.min.y + " z:" + pos.GetComponent<Renderer>().bounds.min.z);
+				//Debug.Log("pos x:" + pos.transform.position.x + " y:" + pos.transform.position.y + " z:" + pos.transform.position.z);
+				commands.Enqueue(new KeyValuePair<string, Vector3>("place", target));
+				dobotRailMoveToPos(target + new Vector3(0, 0.03f, 0), true);
+				dobotRailMoveToPos(target, true);
+				dobotRailDrop();
+				dobotRailJump(false);
+			}
+		}
+	}
+
+	private void dobotLoaderMoveToPos(Vector3 target, Boolean suction)
+	{
+		Debug.Log("movetotarget: " + UnityUtil.PositionToString(target));
+		float[] angleTarget = dobotLoaderIK.GetAnglesForPosition(target);
+		angleTarget = dobotLoaderIK.GetAnglesForPositionCorrection(target, angleTarget);
+		angleTarget = dobotLoaderIK.GetAnglesForPositionCorrection(target, angleTarget);
+		float baseStart = dobotLoaderStartAngles[0];
+		float l2Start = dobotLoaderStartAngles[1];
+		float l3Start = dobotLoaderStartAngles[2];
 		float baseAngle = 0;
 		if (baseStart > 180)
 		{
@@ -473,13 +611,16 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 				l3Start += 0.25f;
 			}
 
-			RobotArmState state = new RobotArmState(
+			RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-			plannedMovements.Enqueue(state);
+			RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+			RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+			plannedMovements.Enqueue(systemState);
+
 			baseRotatorDifference = angleTarget[0] - baseAngle;
 			lowerArmDifference = angleTarget[1] - l2Start;
 			upperArmDifference = angleTarget[2] - l3Start;
@@ -491,24 +632,28 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (baseRotatorDifference < 0)
 			{
 				baseAngle -= 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			else
 			{
 				baseAngle += 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			baseRotatorDifference = angleTarget[0] - baseAngle;
 		}
@@ -518,24 +663,28 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (lowerArmDifference < 0)
 			{
 				l2Start -= 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			else
 			{
 				l2Start += 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			lowerArmDifference = angleTarget[1] - l2Start;
 		}
@@ -545,33 +694,202 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (upperArmDifference < 0)
 			{
 				l3Start -= 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			else
 			{
 				l3Start += 0.5f;
-				RobotArmState state = new RobotArmState(
+				RobotArmState dobotLoaderState = new RobotArmState(
 					baseAngle,
 					l2Start,
 					l3Start,
 					suction,
 					target);
-				plannedMovements.Enqueue(state);
+				RobotArmState dobotRailState = new RobotArmState(dobotRailStartAngles[0], dobotRailStartAngles[1], dobotRailStartAngles[2], false, dobotRailEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, true);
+				plannedMovements.Enqueue(systemState);
 			}
 			upperArmDifference = angleTarget[2] - l3Start;
 		}
 
 
-		startAngles = angleTarget;
-		endPos = target;
+		dobotLoaderStartAngles = angleTarget;
+		dobotLoaderEndPos = target;
 	}
 
+
+	private void dobotRailMoveToPos(Vector3 target, Boolean suction)
+	{
+		Debug.Log("movetotarget: " + UnityUtil.PositionToString(target));
+		float[] angleTarget = dobotRailIK.GetAnglesForPosition(target);
+		angleTarget = dobotRailIK.GetAnglesForPositionCorrection(target, angleTarget);
+		angleTarget = dobotRailIK.GetAnglesForPositionCorrection(target, angleTarget);
+		float baseStart = dobotRailStartAngles[0];
+		float l2Start = dobotRailStartAngles[1];
+		float l3Start = dobotRailStartAngles[2];
+		float baseAngle = 0;
+		if (baseStart > 180)
+		{
+			baseAngle = baseStart - 360;
+		}
+		else
+		{
+			baseAngle = baseStart;
+		}
+
+		float baseRotatorDifference = angleTarget[0] - baseAngle;
+		float lowerArmDifference = angleTarget[1] - l2Start;
+		float upperArmDifference = angleTarget[2] - l3Start;
+
+
+		while (Math.Abs(baseRotatorDifference) > 0.1250 && Math.Abs(lowerArmDifference) > 0.125 && Math.Abs(upperArmDifference) > 0.125)
+		{
+			//Debug.Log(baseRotatorDifference);
+			if (baseRotatorDifference < 0)
+			{
+				baseAngle -= 0.25f;
+			}
+			else
+			{
+				baseAngle += 0.25f;
+			}
+			if (lowerArmDifference < 0)
+			{
+				l2Start -= 0.25f;
+			}
+			else
+			{
+				l2Start += 0.25f;
+			}
+			if (upperArmDifference < 0)
+			{
+				l3Start -= 0.25f;
+			}
+			else
+			{
+				l3Start += 0.25f;
+			}
+
+			RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+			RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+			RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+			plannedMovements.Enqueue(systemState);
+			baseRotatorDifference = angleTarget[0] - baseAngle;
+			lowerArmDifference = angleTarget[1] - l2Start;
+			upperArmDifference = angleTarget[2] - l3Start;
+		}
+
+		while (Math.Abs(baseRotatorDifference) > 0.250)
+		{
+			//Debug.Log(baseRotatorDifference);
+			if (baseRotatorDifference < 0)
+			{
+				baseAngle -= 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			else
+			{
+				baseAngle += 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			baseRotatorDifference = angleTarget[0] - baseAngle;
+		}
+
+		while (Math.Abs(lowerArmDifference) > 0.25)
+		{
+			if (lowerArmDifference < 0)
+			{
+				l2Start -= 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			else
+			{
+				l2Start += 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			lowerArmDifference = angleTarget[1] - l2Start;
+		}
+
+		while (Math.Abs(upperArmDifference) > 0.25)
+		{
+			if (upperArmDifference < 0)
+			{
+				l3Start -= 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			else
+			{
+				l3Start += 0.5f;
+				RobotArmState dobotRailState = new RobotArmState(
+					baseAngle,
+					l2Start,
+					l3Start,
+					suction,
+					target);
+				RobotArmState dobotLoaderState = new RobotArmState(dobotLoaderStartAngles[0], dobotLoaderStartAngles[1], dobotLoaderStartAngles[2], false, dobotLoaderEndPos);
+				RoboticSystemState systemState = new RoboticSystemState(dobotLoaderState, dobotRailState, false);
+				plannedMovements.Enqueue(systemState);
+			}
+			upperArmDifference = angleTarget[2] - l3Start;
+		}
+
+
+		dobotRailStartAngles = angleTarget;
+		dobotRailEndPos = target;
+	}
 
 	public void loadSceneFromPDDL(string pddlState)
 	{
@@ -708,20 +1026,25 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		{
 			putDownPositions.Add(obj, true);
 		}
-		baseRotator = GameObject.Find("magician_link_1");
-		lowerArm = GameObject.Find("magician_link_2");
-		upperArm = GameObject.Find("magician_link_3");
-		hand = GameObject.Find("magician_link_4");
-		endEffector = GameObject.Find("magician_end_effector");
-		endPos = endEffector.transform.position;
+		//dobotLoaderBaseRotator = GameObject.Find("magician_link_1");
+		//dobotLoaderLowerArm = GameObject.Find("magician_link_2");
+		//dobotLoaderUpperArm = GameObject.Find("magician_link_3");
+		//dobotLoaderHand = GameObject.Find("magician_link_4");
+		//dobotLoaderEndEffector = GameObject.Find("magician_end_effector");
+		dobotLoaderEndPos = dobotLoaderEndEffector.transform.position;
+		dobotRailEndPos = dobotRailEndEffector.transform.position;
+		GameObject dobotLoader = GameObject.Find("DobotLoader");
+		dobotLoaderIK = dobotLoader.GetComponent<InverseKinematics>();
+		GameObject dobotRail = GameObject.Find("DobotRail");
+		dobotRailIK = dobotRail.GetComponent<InverseKinematics>();
 		//gameObjects.AddRange(GameObject.FindGameObjectsWithTag("PDDLObject"));
-		Debug.Log(UnityUtil.PositionToString(endPos));
+		Debug.Log(UnityUtil.PositionToString(dobotLoaderEndPos));
 		//Debug.Log(UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(0, 147, 135))));
 		//Debug.Log(UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(147, 0, 135))));
-		Debug.Log(UnityUtil.PositionToString(UnityUtil.VRToDobotArm(endPos)));
+		Debug.Log(UnityUtil.PositionToString(UnityUtil.VRToDobotArm(dobotLoaderEndPos)));
 		GameObject table = GameObject.Find("Table");
 		tableHeight = table.GetComponent<Renderer>().bounds.max.y;
-		mr = GameObject.FindObjectOfType<MovementRecorder>();
+		movementRecorder = GameObject.FindObjectOfType<MovementRecorder>();
 
 		ServiceCaller sc = ServiceCaller.getInstance();
 		sc.SetPTPCmd(1, 147, 0, 135, 0, false);
@@ -740,7 +1063,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			timer += Time.deltaTime;
 			seconds = (int)timer % 60;
 		}
-		if (once && seconds >= 10)
+		if (once && seconds >= 4)
 		{
 			LoadGraspDetectionSubscriber graspDetection = GameObject.FindObjectOfType<LoadGraspDetectionSubscriber>();
 			graspDetection.updateObjectVisualization();
@@ -750,21 +1073,21 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 		if (shouldSolve)
 		{
-			if (solutionLines.Count != 0 && mr.isReplayDone())
+			if (solutionLines.Count != 0 && movementRecorder.isReplayDone())
 			{
 				string line = solutionLines.Dequeue();
 				divideActions(line);
-				Queue<RobotArmState> copiedMovements = new Queue<RobotArmState>(plannedMovements);
-				mr.SetRecordedMovements(plannedMovements);
-				mr.Replay();
+				//Queue<RobotArmState> copiedMovements = new Queue<RobotArmState>(plannedMovements);
+				movementRecorder.SetRecordedMovements(plannedMovements);
+				movementRecorder.Replay();
 				//Actuator actuator = new Actuator();
 				//actuator.executeCommands(commands);
 			}
-			else if (solutionLines.Count == 0 && mr.isReplayDone())
+			else if (solutionLines.Count == 0 && movementRecorder.isReplayDone())
 			{
 				shouldSolve = false;
-				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
-				cd.AutomatedMode(false);
+				//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+				//cd.AutomatedMode(false);
 
 				//foreach (GameObject block in gameObjects)
 				//{
