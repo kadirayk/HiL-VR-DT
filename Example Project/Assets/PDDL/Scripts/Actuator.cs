@@ -180,6 +180,8 @@ namespace Assets.PDDL.Scripts
 					}
 				}
 			}
+			UIStatus uiStatus = GameObject.FindObjectOfType<UIStatus>();
+			uiStatus.setStatus("Executing Done");
 		}
 
 		private bool isAtPosition(Vector3 v1, Vector3 v2)
