@@ -151,10 +151,24 @@ public class DobotController : MonoBehaviour
 			//text.text = "Executing";
 		}
 
+		if (Input.GetKeyDown(KeyCode.T))
+		{
+			MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
+			mr.Execute();
+			uiStatus.setStatus("Executing");
+		}
+
 		if (Input.GetKeyDown(KeyCode.Space))
 		{
 			CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
-			cd.Drop();
+			if (cd.isSuctionActive())
+			{
+				cd.setSuction(false);
+			}
+			else
+			{
+				cd.setSuction(true);
+			}
 		}
 
 	}

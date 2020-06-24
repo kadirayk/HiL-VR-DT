@@ -26,6 +26,8 @@ public class MovementRecorder : MonoBehaviour
 	private bool isRecording = false;
 	private bool isReplaying = false;
 	private bool isReplayFinished = true;
+	Queue<KeyValuePair<string, Vector3>> commands = new Queue<KeyValuePair<string, Vector3>>();
+	Queue<RobotArmState> copiedMovements;
 	public void StartRecording()
 	{
 		isRecording = true;
@@ -34,6 +36,7 @@ public class MovementRecorder : MonoBehaviour
 	public void StopRecording()
 	{
 		isRecording = false;
+		copiedMovements = new Queue<RobotArmState>(recordedMovements);
 		Debug.Log("command count:" + recordedMovements.Count);
 	}
 
@@ -104,6 +107,40 @@ public class MovementRecorder : MonoBehaviour
 		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 	}
 
+	public void Execute()
+	{
+		processRecordedMovements();
+		Actuator actuator = new Actuator();
+		actuator.executeCommands(commands);
+	}
+
+	private void processRecordedMovements()
+	{
+
+		bool currentSuctionState = copiedMovements.Peek().SuctionActive;
+		foreach (RobotArmState state in copiedMovements)
+		{
+			if (currentSuctionState == state.SuctionActive)
+			{ // do nothing 
+				
+			}
+			else
+			{
+				Vector3 target = state.EndEffectorPosition + new Vector3(0, -0.007f, 0);
+				if (state.SuctionActive == true)
+				{
+					commands.Enqueue(new KeyValuePair<string, Vector3>("pick-up", target));
+				}
+				else
+				{
+					commands.Enqueue(new KeyValuePair<string, Vector3>("place", target));
+				}
+				currentSuctionState = state.SuctionActive;
+			}
+		}
+	}
+	
+	
 	// Update is called once per frame
 	void Update()
 	{

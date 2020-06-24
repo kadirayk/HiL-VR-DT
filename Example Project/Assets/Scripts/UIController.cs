@@ -26,6 +26,7 @@ public class UIController : MonoBehaviour
 	public Button executeButton;
 
 	private bool isManualActive = true;
+	UIStatus uiStatus;
 
 
 	GameObject manualPanel;
@@ -37,6 +38,7 @@ public class UIController : MonoBehaviour
 
 	void Start()
 	{
+		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 		manualPanel = GameObject.Find("ManualPanel");
 		automatedPanel = GameObject.Find("AutomatedPanel");
 
@@ -106,26 +108,20 @@ public class UIController : MonoBehaviour
 	void RecordButtonOnClick()
 	{
 		worldState.Initial();
-		GameObject textObj = GameObject.Find("CurrentState_Text");
-		Text text = textObj.GetComponent<Text>();
-		text.text = "Recording Movements";
+		uiStatus.setStatus("Recording Movements");
 		movementRecorder.StartRecording();
 	}
 
 	void StopButtonOnClick()
 	{
-		GameObject textObj = GameObject.Find("CurrentState_Text");
-		Text text = textObj.GetComponent<Text>();
-		text.text = "Recording Stopped";
+		uiStatus.setStatus("Recording Stopped");
 		movementRecorder.StopRecording();
 	}
 
 	void ReplayButtonOnClick()
 	{
 		worldState.Goal();
-		GameObject textObj = GameObject.Find("CurrentState_Text");
-		Text text = textObj.GetComponent<Text>();
-		text.text = "Replaying Movements";
+		uiStatus.setStatus("Replaying Movements");
 		movementRecorder.Replay();
 	}
 
@@ -162,5 +158,7 @@ public class UIController : MonoBehaviour
 
 	void ExecuteButtonOnClick()
 	{
+		worldState.Execute();
+		uiStatus.setStatus("Executing");
 	}
 }
