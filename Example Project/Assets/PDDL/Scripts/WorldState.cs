@@ -8,6 +8,7 @@ using Assets.Util;
 using RosSharp.RosBridgeClient;
 using Assets.PDDL;
 using Assets.PDDL.Scripts;
+using System.Collections;
 
 public class WorldState : MonoBehaviour, IListener, IProblemState
 {
@@ -41,6 +42,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	Dictionary<string, Vector3> initialBlockPositions = new Dictionary<string, Vector3>();
 	Dictionary<string, Quaternion> initialBlockRotations = new Dictionary<string, Quaternion>();
 	UIStatus uiStatus;
+	bool isSolveActive = false;
+	Actuator actuator;
 
 	public void Initial()
 	{
@@ -163,12 +166,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 		// move blocks to initial positions
 
-		foreach (KeyValuePair<string, Vector3> entry in initialBlockPositions)
-		{
-			GameObject obj = GameObject.Find(entry.Key);
-			obj.transform.position = entry.Value;
-			obj.transform.rotation = initialBlockRotations[entry.Key];
-		}
+		ToInitialPosition();
 
 		//foreach (GameObject obj in gameObjects)
 		//{
@@ -177,12 +175,26 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//loadSceneFromPDDL(initialState);
 	}
 
-	public void Solve()
+	public void ToInitialPosition()
+	{
+		foreach (KeyValuePair<string, Vector3> entry in initialBlockPositions)
+		{
+			GameObject obj = GameObject.Find(entry.Key);
+			obj.transform.position = entry.Value;
+			obj.transform.rotation = initialBlockRotations[entry.Key];
+		}
+	}
+
+	public void Solve() {
+		isSolveActive = true;
+	}
+
+IEnumerator SolveCoroutine()
 	{
 		mr.SetAutomatedMode(true);
 		uiStatus.setStatus("Solving");
-		//string problem = createPDDLProblem();
-		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
+		string problem = createPDDLProblem();
+		System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
 		//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
 		//cd.AutomatedMode(true);
 
@@ -209,15 +221,15 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			if (i > SOLVE_TIMEOUT)
 			{
 				Debug.LogError("No solution is found in " + i + " seconds");
-				return;
+				yield return null;
 			}
-			System.Threading.Thread.Sleep(1000);
+			yield return new WaitForSeconds(1);
 			newModification = System.IO.File.GetLastWriteTime(WORK_PATH + @"PDDLSolver\solution.txt");
 			i++;
 		}
 		Debug.Log("solved in: " + i + " seconds");
 		process.Close();
-		System.Threading.Thread.Sleep(2000);
+		yield return new WaitForSeconds(2);
 		string[] lines = System.IO.File.ReadAllLines(WORK_PATH + @"PDDLSolver\solution.txt");
 		//List<string> cleanLines = cleanUpLines(lines);
 		//GameObject cube = GameObject.Find("RedCube1");
@@ -737,6 +749,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		//Debug.Log("B:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -15))));
 		//Debug.Log("C:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -70))));
 		uiStatus =  GameObject.FindObjectOfType<UIStatus>();
+		actuator = GameObject.FindObjectOfType<Actuator>();
 		positions = GameObject.FindGameObjectsWithTag("Position");
 		foreach (GameObject pos in positions)
 		{
@@ -779,7 +792,6 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 
 	public void Execute()
 	{
-		Actuator actuator = new Actuator();
 		actuator.executeCommands(commands);
 	}
 
@@ -805,6 +817,11 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			calcTime = false;
 		}
 
+		if (isSolveActive) {
+			StartCoroutine(SolveCoroutine());
+			isSolveActive = false;
+		}
+
 		if (shouldSolve)
 		{
 			if (solutionLines.Count != 0 && mr.isReplayDone())
@@ -822,7 +839,7 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 			{
 				Debug.Log("should solve replay done");
 				shouldSolve = false;
-				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+				EndEffectorCollisionController cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 				cd.AutomatedMode(false);
 				uiStatus.setStatus("Solution Done");
 

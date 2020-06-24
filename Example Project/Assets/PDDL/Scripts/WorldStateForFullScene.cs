@@ -161,7 +161,7 @@ public class WorldStateForFullScene : MonoBehaviour, IListener, IProblemState
 	{
 		//string problem = createPDDLProblem();
 		//System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
-		CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+		EndEffectorCollisionController cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 		cd.AutomatedMode(true);
 
 		//foreach (GameObject block in gameObjects)
@@ -766,7 +766,7 @@ public class WorldStateForFullScene : MonoBehaviour, IListener, IProblemState
 			else if (solutionLines.Count == 0 && mr.isReplayDone())
 			{
 				shouldSolve = false;
-				CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+				EndEffectorCollisionController cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 				cd.AutomatedMode(false);
 
 				//foreach (GameObject block in gameObjects)

@@ -15,7 +15,7 @@ public class MovementRecorder : MonoBehaviour
 	public Transform hand;
 	public Transform target;
 	public Transform suctionCup;
-	public CollisionDetection collisionDetection;
+	public EndEffectorCollisionController collisionDetection;
 	GameObject endEffector;
 	private ServiceCaller sc;
 	private bool suctionState;
@@ -28,6 +28,9 @@ public class MovementRecorder : MonoBehaviour
 	private bool isReplayFinished = true;
 	Queue<KeyValuePair<string, Vector3>> commands = new Queue<KeyValuePair<string, Vector3>>();
 	Queue<RobotArmState> copiedMovements;
+
+	Actuator actuator;
+
 	public void StartRecording()
 	{
 		isRecording = true;
@@ -100,17 +103,17 @@ public class MovementRecorder : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		collisionDetection = GameObject.FindObjectOfType<CollisionDetection>();
+		collisionDetection = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 		endEffector = GameObject.Find("magician_end_effector");
 		checkObjectsForNull();
 		sc = ServiceCaller.getInstance();
 		uiStatus = GameObject.FindObjectOfType<UIStatus>();
+		actuator = GameObject.FindObjectOfType<Actuator>();
 	}
 
 	public void Execute()
 	{
 		processRecordedMovements();
-		Actuator actuator = new Actuator();
 		actuator.executeCommands(commands);
 	}
 
@@ -172,7 +175,6 @@ public class MovementRecorder : MonoBehaviour
 				//Debug.Log("in replay pose:" + UnityUtil.PositionToString(dobotPose));
 				//sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
 				//sc.SetEndEffectorSuctionCup(state.SuctionActive);
-				Actuator actuator = new Actuator();
 				isReplayFinished = false;
 				if (!isAutoMode)
 				{

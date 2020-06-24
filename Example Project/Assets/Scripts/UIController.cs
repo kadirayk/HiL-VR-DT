@@ -34,7 +34,7 @@ public class UIController : MonoBehaviour
 
 	MovementRecorder movementRecorder;
 	WorldState worldState;
-	CollisionDetection cd;
+	EndEffectorCollisionController cd;
 
 	void Start()
 	{
@@ -59,7 +59,7 @@ public class UIController : MonoBehaviour
 
 		movementRecorder = GameObject.FindObjectOfType<MovementRecorder>();
 		worldState = GameObject.FindObjectOfType<WorldState>();
-		cd = GameObject.FindObjectOfType<CollisionDetection>();
+		cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 
 
 	}
@@ -120,7 +120,7 @@ public class UIController : MonoBehaviour
 
 	void ReplayButtonOnClick()
 	{
-		worldState.Goal();
+		worldState.ToInitialPosition();
 		uiStatus.setStatus("Replaying Movements");
 		movementRecorder.Replay();
 	}
@@ -158,7 +158,14 @@ public class UIController : MonoBehaviour
 
 	void ExecuteButtonOnClick()
 	{
-		worldState.Execute();
+		if (isManualActive) {
+			movementRecorder.Execute();
+		}
+		else
+		{
+			worldState.Execute();
+		}
+		
 		uiStatus.setStatus("Executing");
 	}
 }

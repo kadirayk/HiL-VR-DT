@@ -8,11 +8,11 @@ public class GrabGrip : MonoBehaviour
 	public SteamVR_Input_Sources handType;
 	public SteamVR_Action_Boolean grabAction;
 	public float val;
-	private CollisionDetection cd;
+	private EndEffectorCollisionController cd;
 
 	void Start()
 	{
-		cd = GameObject.FindObjectOfType<CollisionDetection>();				
+		cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();				
 	}
 
 	void Update()

@@ -3,16 +3,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
+using System.Collections;
 
 namespace Assets.PDDL.Scripts
 {
-	class Actuator
+	class Actuator: MonoBehaviour
 	{
+
+		bool isExecuteActive = false;
+
 		int timeout = 50; // 5 sec
 
-		public void executeCommands(Queue<KeyValuePair<string, Vector3>> commands)
+		Queue<KeyValuePair<string, Vector3>> commands;
+
+		public void executeCommands(Queue<KeyValuePair<string, Vector3>> com) {
+			commands = com;
+			isExecuteActive = true;
+		}
+
+		void Update()
+		{
+			if (isExecuteActive) {
+				StartCoroutine(executeCommandsCoroutine());
+				isExecuteActive = false;
+			}
+		}
+
+		IEnumerator executeCommandsCoroutine()
 		{
 			while (commands.Count > 0)
 			{
@@ -29,7 +47,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -42,7 +60,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -53,7 +71,7 @@ namespace Assets.PDDL.Scripts
 					while (!suction && timeCounter < timeout )
 					{
 						sc.GetEndEffectorSuctionCup();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						suction = sc.GetSuction();
 						timeCounter++;
 					}
@@ -67,7 +85,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -83,7 +101,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -96,7 +114,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -107,7 +125,7 @@ namespace Assets.PDDL.Scripts
 					while (suction && timeCounter < timeout)
 					{
 						sc.GetEndEffectorSuctionCup();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						suction = sc.GetSuction();
 						timeCounter++;
 					}
@@ -120,7 +138,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -137,7 +155,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -150,7 +168,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -161,7 +179,7 @@ namespace Assets.PDDL.Scripts
 					while (suction && timeCounter < timeout)
 					{
 						sc.GetEndEffectorSuctionCup();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						suction = sc.GetSuction();
 						timeCounter++;
 					}
@@ -174,7 +192,7 @@ namespace Assets.PDDL.Scripts
 					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
 					{
 						sc.GetPose();
-						System.Threading.Thread.Sleep(100);
+						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
 						timeCounter++;
 					}
@@ -191,50 +209,51 @@ namespace Assets.PDDL.Scripts
 
 	
 		bool prevSuction = false;
-		public void execute(Queue<RobotArmState> movements)
-		{
-			Debug.Log("execute item count:" + movements.Count);
-			int step = 5;
-			int item = 0;
-			while (movements.Count > 0)
-			{
-				RobotArmState state = movements.Dequeue();
-				if (item % step == 0)
-				{
-					ServiceCaller sc = ServiceCaller.getInstance();
-					Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition + new Vector3(0, -0.007f, 0));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					int timer = 0;
-					while (!sc.SetPTPCmdReceived() && timer < timeout)
-					{
-						System.Threading.Thread.Sleep(100);
-						timer++;
-					}
-					if (state.SuctionActive != prevSuction)
-					{
-						prevSuction = state.SuctionActive;
-						//sc.SetEndEffectorSuctionCup(state.SuctionActive);
 
-						while (!sc.SetEndEffectorSuctionCupReceived())
-						{
-							System.Threading.Thread.Sleep(100);
-						}
-					}
+		//public void OldExec(Queue<RobotArmState> movements)
+		//{
+		//	Debug.Log("execute item count:" + movements.Count);
+		//	int step = 5;
+		//	int item = 0;
+		//	while (movements.Count > 0)
+		//	{
+		//		RobotArmState state = movements.Dequeue();
+		//		if (item % step == 0)
+		//		{
+		//			ServiceCaller sc = ServiceCaller.getInstance();
+		//			Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition + new Vector3(0, -0.007f, 0));
+		//			sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+		//			int timer = 0;
+		//			while (!sc.SetPTPCmdReceived() && timer < timeout)
+		//			{
+		//				yield return new WaitForSeconds(0.1f);
+		//				timer++;
+		//			}
+		//			if (state.SuctionActive != prevSuction)
+		//			{
+		//				prevSuction = state.SuctionActive;
+		//				//sc.SetEndEffectorSuctionCup(state.SuctionActive);
 
-				}
-				if (movements.Count == 1)
-				{
-					ServiceCaller sc = ServiceCaller.getInstance();
-					Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition);
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					while (!sc.SetPTPCmdReceived())
-					{
-						System.Threading.Thread.Sleep(100);
-					}
-				}
-				item++;
-			}
-		}
+		//				while (!sc.SetEndEffectorSuctionCupReceived())
+		//				{
+		//					yield return new WaitForSeconds(0.1f);
+		//				}
+		//			}
+
+		//		}
+		//		if (movements.Count == 1)
+		//		{
+		//			ServiceCaller sc = ServiceCaller.getInstance();
+		//			Vector3 dobotPose = UnityUtil.VRToDobotArm(state.EndEffectorPosition);
+		//			sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+		//			while (!sc.SetPTPCmdReceived())
+		//			{
+		//				yield return new WaitForSeconds(0.1f);
+		//			}
+		//		}
+		//		item++;
+		//	}
+		//}
 
 	}
 }

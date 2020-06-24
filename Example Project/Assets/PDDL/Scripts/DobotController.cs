@@ -160,7 +160,7 @@ public class DobotController : MonoBehaviour
 
 		if (Input.GetKeyDown(KeyCode.Space))
 		{
-			CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
+			EndEffectorCollisionController cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 			if (cd.isSuctionActive())
 			{
 				cd.setSuction(false);
