@@ -52,11 +52,11 @@ public class DobotController : MonoBehaviour
 			DobotHand.transform.Rotate(1, 0, 0);
 		}
 
-		if (Input.GetKeyDown(KeyCode.S))
-		{
-			WorldState ws = GameObject.FindObjectOfType<WorldState>();
-			ws.Initial();
-		}
+		//if (Input.GetKeyDown(KeyCode.S))
+		//{
+		//	WorldState ws = GameObject.FindObjectOfType<WorldState>();
+		//	ws.Initial();
+		//}
 
 		if (Input.GetKeyDown(KeyCode.G))
 		{
@@ -169,6 +169,10 @@ public class DobotController : MonoBehaviour
 			{
 				cd.setSuction(true);
 			}
+		}
+		if (Input.GetKeyDown(KeyCode.L)) {
+			UserActionRecorder actionRecorder = GameObject.FindObjectOfType<UserActionRecorder>();
+			actionRecorder.PrintLog();
 		}
 
 	}
