@@ -12,6 +12,7 @@ public class ObjectVisualizer : MonoBehaviour
 	static readonly string demoFile = @"grasp_detection_RBY.json";
 	static readonly int objCount = 3;
 	public GameObject cubePrefab;
+	Dictionary<string, int> colorCounts = new Dictionary<string, int>();
 
 	// Start is called before the first frame update
 	void Start()
@@ -71,7 +72,7 @@ public class ObjectVisualizer : MonoBehaviour
 
 			GameObject table = GameObject.Find("Table");
 			GameObject cube = Instantiate(cubePrefab, new UnityEngine.Vector3(0.85f - graspPoint.z, graspPoint.y + table.GetComponent<Renderer>().bounds.max.y - 0.0125f, 1.2f + graspPoint.x), rotation);
-			cube.name = "cube_" + i;
+			cube.name = getColorName(color); // "cube_" + i;
 			cube.transform.localScale = new UnityEngine.Vector3(0.025f, 0.025f, 0.025f);
 			cube.GetComponent<Renderer>().material.color = color;
 			i++;
@@ -83,5 +84,43 @@ public class ObjectVisualizer : MonoBehaviour
 	void Update()
 	{
 
+	}
+
+	private string getColorName(Color color)
+	{
+		float red = color.r;
+		float green = color.g;
+		float blue = color.b;
+		string colorName = "";
+		string name = "";
+		if (red - green > 0.12 && red - blue > 0.12)
+		{
+			colorName = "red";
+		}
+		else if (blue - red > 0.12 && blue - green > 0.12)
+		{
+			colorName = "blue";
+		}
+		else if (green - red > 0.12 && green - blue > 0.12)
+		{
+			colorName = "green";
+		}
+		else
+		{
+			colorName = "yellow";
+		}
+		if (colorCounts.ContainsKey(colorName))
+		{
+			int count = colorCounts[colorName];
+			name = "cube_" + colorName + "_" + ++count;
+			colorCounts[colorName] = count;
+		}
+		else
+		{
+			name = "cube_" + colorName + "_" + 0;
+			colorCounts[colorName] = 0;
+		}
+
+		return name;
 	}
 }
