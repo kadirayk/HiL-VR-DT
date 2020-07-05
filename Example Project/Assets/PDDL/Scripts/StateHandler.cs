@@ -12,6 +12,8 @@ public class StateHandler : MonoBehaviour
 	{
 		WorldState ws = GameObject.FindObjectOfType<WorldState>();
 		ws.Register(gameObject);
+		UserActionRecorder actionRecorder = GameObject.FindObjectOfType<UserActionRecorder>();
+		actionRecorder.RegisterGrabbable(gameObject);
 	}
 
 	// Update is called once per frame
