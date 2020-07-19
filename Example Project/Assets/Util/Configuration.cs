@@ -12,10 +12,19 @@ namespace Assets.Util
 	{
 		private static Dictionary<String, String> conf;
 
-		private static void init() {
+		private static void init()
+		{
 			conf = new Dictionary<string, string>();
-			string[] lines = System.IO.File.ReadAllLines("app.conf");
-			foreach(string line in lines){
+
+			TextAsset file = Resources.Load("app-config") as TextAsset;
+
+			string content = file.text;
+
+			string[] lines = content.Split(
+				new[] { Environment.NewLine },
+						StringSplitOptions.None);
+			foreach (string line in lines)
+			{
 				string[] keyVal = line.Split(new string[] { "=" }, StringSplitOptions.None);
 				conf.Add(keyVal[0].Trim(), keyVal[1].Trim());
 			}
@@ -26,7 +35,8 @@ namespace Assets.Util
 		{
 		}
 
-		public static string getString(string key) {
+		public static string getString(string key)
+		{
 			if (conf == null)
 			{
 				init();

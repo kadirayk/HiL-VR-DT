@@ -1,20 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_STANDALONE_WIN
 using UnityEngine.Windows.Speech;
+#endif
 using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class VoiceRecognitionManager : MonoBehaviour
 {
+#if UNITY_STANDALONE_WIN
 	KeywordRecognizer keywordRecognizer;
 	Dictionary<string, System.Action> keywords = new Dictionary<string, System.Action>();
 	public GameObject Cube;
-	
+#endif
+
 
 	private void Start()
 	{
+#if UNITY_STANDALONE_WIN
 		Debug.Log("voice mananger active");
 		//Create keywords for keyword recognizer
 		MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
@@ -81,8 +86,10 @@ public class VoiceRecognitionManager : MonoBehaviour
 
 		keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
 		keywordRecognizer.Start();
+#endif
 	}
 
+	#if UNITY_STANDALONE_WIN
 	private void KeywordRecognizer_OnPhraseRecognized(PhraseRecognizedEventArgs args)
 	{
 		Debug.Log(args.text + " " + args.confidence);
@@ -93,5 +100,6 @@ public class VoiceRecognitionManager : MonoBehaviour
 			keywordAction.Invoke();
 		}
 	}
+#endif
 
-}
+	}

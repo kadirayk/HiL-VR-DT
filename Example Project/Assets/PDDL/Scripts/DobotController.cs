@@ -23,6 +23,12 @@ public class DobotController : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+
+		if (Input.GetKey(KeyCode.Escape))
+		{
+			Application.Quit();
+		}
+
 		if (Input.GetKey(KeyCode.DownArrow))
 		{
 			LowerArm.transform.Rotate(1, 0, 0);

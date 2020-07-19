@@ -34,8 +34,8 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	bool shouldSolve = false;
 	Queue<String> solutionLines;
 	MovementRecorder mr;
-	private static readonly int SOLVE_TIMEOUT = Configuration.getInt("SOLVE_TIMEOUT");
-	private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
+	private static int SOLVE_TIMEOUT;
+	private static string WORK_PATH;
 	private Dictionary<GameObject, Boolean> putDownPositions = new Dictionary<GameObject, bool>(); // true if empty
 	Queue<KeyValuePair<string, Vector3>> commands = new Queue<KeyValuePair<string, Vector3>>();
 
@@ -44,6 +44,13 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 	UIStatus uiStatus;
 	bool isSolveActive = false;
 	Actuator actuator;
+	ModeManager modeManager;
+
+	public void Awake()
+	{
+		SOLVE_TIMEOUT = Configuration.getInt("SOLVE_TIMEOUT");
+		WORK_PATH = Configuration.getString("WORK_PATH");
+	}
 
 	public void Initial()
 	{
@@ -733,12 +740,13 @@ IEnumerator SolveCoroutine()
 	public void Register(GameObject gameObject)
 	{
 		gameObjects.Add(gameObject);
-		Debug.Log("registered");
+		modeManager.Register(gameObject);
 	}
 
 	public void Unregister(GameObject gameObject)
 	{
 		gameObjects.Remove(gameObject);
+		modeManager.Unregister(gameObject);
 	}
 
 	// Start is called before the first frame update
@@ -777,6 +785,7 @@ IEnumerator SolveCoroutine()
 		GameObject conveyor = GameObject.Find("Belt");
 		conveyorHeight = conveyor.GetComponent<Renderer>().bounds.max.y;
 		mr = GameObject.FindObjectOfType<MovementRecorder>();
+		modeManager = GameObject.FindObjectOfType<ModeManager>();
 
 		ServiceCaller sc = ServiceCaller.getInstance();
 		sc.SetPTPCmd(1, 147, 0, 135, 0, false);

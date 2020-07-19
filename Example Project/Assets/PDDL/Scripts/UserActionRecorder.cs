@@ -15,7 +15,7 @@ public class UserActionRecorder : MonoBehaviour
 	public static readonly string OBJECT_USED = "objectUsed";
 	public static readonly string OBJECT_UNUSED = "objectUnused";
 	public static readonly string HEAD_MOVEMENT = "headMovement";
-	private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
+	//private static readonly string WORK_PATH = Configuration.getString("WORK_PATH");
 	private static float VRCameraMinimumDetectionSpeed = 0.5f;
 	private static float VRCameraMinimumDetectionAngularSpeed = 20f;
 
@@ -183,6 +183,6 @@ public class UserActionRecorder : MonoBehaviour
 		output.Remove(output.Length - 1, 1);
 		output.Append("\n\t]\n}");
 		
-		System.IO.File.WriteAllText(WORK_PATH + @"UserActionEvents\eventLog.json", output.ToString());
+		//System.IO.File.WriteAllText(WORK_PATH + @"UserActionEvents\eventLog.json", output.ToString());
 	}
 }

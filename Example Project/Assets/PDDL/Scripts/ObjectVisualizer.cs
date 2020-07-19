@@ -9,7 +9,7 @@ using SimpleJSON;
 public class ObjectVisualizer : MonoBehaviour
 {
 	DetectedObjects detectedObjects;
-	static readonly string demoFile = @"grasp_detection_RBY.json";
+	static readonly string demoFile; // = @"grasp_detection_RBY.json";
 	static readonly int objCount = 3;
 	public GameObject cubePrefab;
 	Dictionary<string, int> colorCounts = new Dictionary<string, int>();
@@ -17,7 +17,9 @@ public class ObjectVisualizer : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		string json = System.IO.File.ReadAllText(demoFile);
+		TextAsset file = Resources.Load("grasp_detection_RBY") as TextAsset;
+
+		string json = file.text;
 		JSONNode data = JSON.Parse(json);
 
 		int i = 0;

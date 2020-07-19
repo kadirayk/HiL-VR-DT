@@ -1,0 +1,2 @@
+SOLVE_TIMEOUT = 20
+WORK_PATH = C:\Users\Kadiray\Thesis\VR\

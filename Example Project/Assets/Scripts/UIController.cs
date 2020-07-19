@@ -3,6 +3,26 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
+
+public enum ManualState
+{
+	robotActing,
+	init,
+	recorded,
+	stopped,
+	replayed,
+	executed
+}
+
+public enum AutomatedState
+{
+	robotActing,
+	init,
+	goalRegistered,
+	solved,
+	executed
+}
+
 public class UIController : MonoBehaviour
 {
 	// tab selectors
@@ -17,7 +37,7 @@ public class UIController : MonoBehaviour
 	public Button suctionButton;
 
 	[Header("Automated Panel")]
-	public Button registerInitialButton;
+	public Button showPDDLStatesButton;
 	public Button registerGoalButton;
 	public Button solveButton;
 
@@ -26,57 +46,79 @@ public class UIController : MonoBehaviour
 	public Button executeButton;
 
 	private bool isManualActive = true;
+	private bool showPDDLDetails = false;
 	UIStatus uiStatus;
 
 
 	GameObject manualPanel;
 	GameObject automatedPanel;
+	GameObject debugPanel;
 
 	MovementRecorder movementRecorder;
 	WorldState worldState;
 	EndEffectorCollisionController cd;
+	ModeManager modeManager;
+
+	ManualState manualState;
+	AutomatedState automatedState;
 
 	void Start()
 	{
 		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 		manualPanel = GameObject.Find("ManualPanel");
 		automatedPanel = GameObject.Find("AutomatedPanel");
+		debugPanel = GameObject.Find("DebugPanel");
 
 		manualButton.GetComponent<Button>().onClick.AddListener(ManualButtonOnClick);
 		automatedButton.GetComponent<Button>().onClick.AddListener(AutomatedButtonOnClick);
-		
+
 		recordButton.GetComponent<Button>().onClick.AddListener(RecordButtonOnClick);
 		stopButton.GetComponent<Button>().onClick.AddListener(StopButtonOnClick);
 		replayButton.GetComponent<Button>().onClick.AddListener(ReplayButtonOnClick);
 		suctionButton.GetComponent<Button>().onClick.AddListener(SuctionButtonOnClick);
 
-		registerInitialButton.GetComponent<Button>().onClick.AddListener(RegisterInitialButtonOnClick);
+		showPDDLStatesButton.GetComponent<Button>().onClick.AddListener(ShowPDDLStatesButtonOnClick);
 		registerGoalButton.GetComponent<Button>().onClick.AddListener(RegisterGoalButtonOnClick);
 		solveButton.GetComponent<Button>().onClick.AddListener(SolveButtonOnClick);
-		
+
 		restartButton.GetComponent<Button>().onClick.AddListener(RestartButtonOnClick);
 		executeButton.GetComponent<Button>().onClick.AddListener(ExecuteButtonOnClick);
 
 		movementRecorder = GameObject.FindObjectOfType<MovementRecorder>();
 		worldState = GameObject.FindObjectOfType<WorldState>();
 		cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
-
-
+		modeManager = GameObject.FindObjectOfType<ModeManager>();
+		manualState = ManualState.init;
+		automatedState = AutomatedState.init;
 	}
 
 	void Update()
 	{
-		
+		//automated vs manual switch
+		manualPanel.SetActive(isManualActive);
+		automatedPanel.SetActive(!isManualActive);
 		if (isManualActive)
 		{
-			manualPanel.SetActive(true);
-			automatedPanel.SetActive(false);
+			modeManager.SetMode(Mode.manual);
 		}
 		else
 		{
-			manualPanel.SetActive(false);
-			automatedPanel.SetActive(true);
+			modeManager.SetMode(Mode.automated);
 		}
+		
+
+		// enable disable PDDL details
+		if (showPDDLDetails)
+		{
+			debugPanel.SetActive(true);
+			showPDDLStatesButton.GetComponentInChildren<Text>().text = "Hide PDDL States";
+		}
+		else
+		{
+			debugPanel.SetActive(false);
+			showPDDLStatesButton.GetComponentInChildren<Text>().text = "Show PDDL States";
+		}
+
 
 		if (cd.isSuctionActive())
 		{
@@ -85,13 +127,13 @@ public class UIController : MonoBehaviour
 			colors.normalColor = Color.red;
 			suctionButton.colors = colors;
 		}
-		else {
+		else
+		{
 			suctionButton.GetComponentInChildren<Text>().text = "Start Suction";
 			ColorBlock colors = suctionButton.colors;
 			colors.normalColor = Color.green;
 			suctionButton.colors = colors;
 		}
-
 
 	}
 
@@ -107,8 +149,8 @@ public class UIController : MonoBehaviour
 
 	void RecordButtonOnClick()
 	{
-		worldState.Initial();
 		uiStatus.setStatus("Recording Movements");
+		worldState.Initial();
 		movementRecorder.StartRecording();
 	}
 
@@ -132,13 +174,22 @@ public class UIController : MonoBehaviour
 		{
 			cd.setSuction(false);
 		}
-		else {
+		else
+		{
 			cd.setSuction(true);
 		}
 	}
 
-	void RegisterInitialButtonOnClick()
+	void ShowPDDLStatesButtonOnClick()
 	{
+		if (showPDDLStatesButton.GetComponentInChildren<Text>().text.Equals("Show PDDL States"))
+		{
+			showPDDLDetails = true;
+		}
+		else
+		{
+			showPDDLDetails = false;
+		}
 	}
 
 	void RegisterGoalButtonOnClick()
@@ -158,14 +209,15 @@ public class UIController : MonoBehaviour
 
 	void ExecuteButtonOnClick()
 	{
-		if (isManualActive) {
+		if (isManualActive)
+		{
 			movementRecorder.Execute();
 		}
 		else
 		{
 			worldState.Execute();
 		}
-		
+
 		uiStatus.setStatus("Executing");
 	}
 }
