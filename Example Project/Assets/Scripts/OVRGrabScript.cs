@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static OVRInput;
+using AutoQUEST;
 
 public class OVRGrabScript : MonoBehaviour
 {
@@ -20,6 +21,5 @@ public class OVRGrabScript : MonoBehaviour
 		{
 			ik.DoIK();
 		}
-
 	}
 }
