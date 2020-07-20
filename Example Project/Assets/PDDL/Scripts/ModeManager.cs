@@ -19,6 +19,8 @@ public class ModeManager : MonoBehaviour
 
 	private Mode mode = Mode.manual;
 
+	Dictionary<GameObject, OVRGrabbable> gameObjToGrabbable = new Dictionary<GameObject, OVRGrabbable>();
+
 	void Start()
 	{
 
@@ -36,10 +38,7 @@ public class ModeManager : MonoBehaviour
 			sphere.SetActive(true);
 			foreach (GameObject obj in gameObjects)
 			{
-				if (obj.GetComponentInChildren<IgnoreHovering>() == null)
-				{
-					obj.AddComponent<IgnoreHovering>();
-				}
+				Destroy(obj.GetComponent<OVRGrabbable>());
 
 			}
 		}
@@ -48,10 +47,7 @@ public class ModeManager : MonoBehaviour
 			sphere.SetActive(false);
 			foreach (GameObject obj in gameObjects)
 			{
-				if (obj.GetComponentInChildren<IgnoreHovering>() != null)
-				{
-					Destroy(obj.GetComponentInChildren<IgnoreHovering>());
-				}
+				obj.AddComponent<OVRGrabbable>();
 			}
 		}
 	}
