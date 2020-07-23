@@ -285,6 +285,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5454366071394058108, guid: a74a42d8eec91f24dbe052913924d353,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5454366071763185657, guid: a74a42d8eec91f24dbe052913924d353,
         type: 3}
       propertyPath: m_LocalRotation.x
@@ -448,6 +453,11 @@ PrefabInstance:
     - target: {fileID: 5454366072851787321, guid: a74a42d8eec91f24dbe052913924d353,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5454366072900739648, guid: a74a42d8eec91f24dbe052913924d353,
+        type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -8455,7 +8465,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1734519615}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 13.222866, y: 13.148658, z: 38.00436}

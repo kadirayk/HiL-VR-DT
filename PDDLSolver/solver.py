@@ -7,6 +7,7 @@ data = {'domain': open(sys.argv[1], 'r').read(),
         'problem': open(sys.argv[2], 'r').read()}
 
 data = json.dumps(data).encode("utf-8")
+print(data)
 req = Request('http://solver.planning.domains/solve')
 req.add_header('Content-Type', 'application/json')
 ans = urlopen(req, data=data)

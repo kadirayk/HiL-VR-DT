@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace Assets.PDDL
 {
 	class UnityUtil
 	{
+		private static Dictionary<GameObject, Color> objToColor = new Dictionary<GameObject, Color>();
+
 		public static string PositionToString(Vector3 pos)
 		{
 			return "x:" + pos.x + " y:" + pos.y + " z:" + pos.z;
@@ -43,5 +46,45 @@ namespace Assets.PDDL
 			//return new Vector3((1 - (0.06f * (float)Math.Cos(angle) + scaled.y)), scaled.z + 0.840f, (1f + 0.06f * (float)Math.Sin(angle) + scaled.x));
 		}
 
+		public static void highLightStart(GameObject obj)
+		{
+
+			Color initialColor = obj.GetComponent<Renderer>().material.color;
+			if (!objToColor.ContainsKey(obj)) {
+				objToColor[obj] = initialColor;
+			}
+
+			//highlight obj
+			float H;
+			float S;
+			float V;
+			Color.RGBToHSV(initialColor, out H, out S, out V);
+			obj.GetComponent<Renderer>().material.color = Color.HSVToRGB(H, S-0.7f, 1f);
+		}
+
+		public static void highLightEnd(GameObject obj)
+		{
+			if (objToColor.ContainsKey(obj))
+			{
+				obj.GetComponent<Renderer>().material.color = objToColor[obj];
+			}
+		}
+
+		public static IEnumerator HapticFeedback(float duration)
+		{
+			if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+			{
+				OVRInput.SetControllerVibration(0.4f, 0.4f, OVRInput.Controller.RTouch);
+			}
+			else if (OVRInput.Get(OVRInput.Button.PrimaryHandTrigger))
+			{
+				OVRInput.SetControllerVibration(0.4f, 0.4f, OVRInput.Controller.LTouch);
+			}
+
+			yield return new WaitForSeconds(duration);
+
+			OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch);
+			OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
+		}
 	}
 }

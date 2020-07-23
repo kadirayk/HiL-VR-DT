@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.PDDL;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -59,7 +60,7 @@ public class EndEffectorCollisionController : MonoBehaviour
 
 	private void Update()
 	{
-		
+
 		if (!suctionActive)
 		{
 			GameObject obj = frameCountToDropObject.Item1; //this.transform.GetChild(this.transform.childCount - 1).gameObject;
@@ -83,25 +84,66 @@ public class EndEffectorCollisionController : MonoBehaviour
 		}
 	}
 
+
+	private void OnTriggerEnter(Collider other)
+	{
+
+		GameObject obj = other.gameObject;
+		if (obj.name.StartsWith("cube_"))
+		{
+			UnityUtil.highLightStart(obj);
+			StartCoroutine(UnityUtil.HapticFeedback(0.1f));
+
+		}
+
+		//Debug.Log("End Effector Trigger enter");
+		if (suctionActive)
+		{
+			if (obj.name.StartsWith("cube_"))
+			{
+				//Debug.Log("collision obj:" + obj.name);
+				frameCountToDropObject = new ValueTuple<GameObject, int>(obj, 0);
+				obj.transform.parent = this.transform;
+				obj.transform.localRotation = Quaternion.Euler(0, 0, 0);
+				obj.GetComponent<Rigidbody>().isKinematic = true;
+				//Debug.Log("holding and suction active");
+				isHolding = true;
+				shouldDrop = false;
+			}
+		}
+	}
+
+	private void OnTriggerExit(Collider other)
+	{
+
+		GameObject obj = other.gameObject;
+		if (obj.name.StartsWith("cube_"))
+		{
+			UnityUtil.highLightEnd(obj);
+		}
+
+	}
+
 	void OnCollisionEnter(Collision collision)
 	{
 		//Debug.Log("col enter1 " + isHolding);
-		Debug.Log("collision enter");
-		if (suctionActive)
-		{
-			//Debug.Log("col enter2");
+		// Disabled this code so that endeffector doesnt directly move cubes instead used OnTriggerEnter
+		//Debug.Log("collision enter");
+		//if (suctionActive)
+		//{
+		//	//Debug.Log("col enter2");
 
-			GameObject obj = collision.gameObject;
-			Debug.Log("collision obj:" + obj.name);
-			frameCountToDropObject = new ValueTuple<GameObject, int>(obj, 0);
-			obj.transform.parent = this.transform;
-			obj.transform.localRotation = Quaternion.Euler(0, 0, 0);
-			obj.GetComponent<Rigidbody>().isKinematic = true;
+		//	GameObject obj = collision.gameObject;
+		//	Debug.Log("collision obj:" + obj.name);
+		//	frameCountToDropObject = new ValueTuple<GameObject, int>(obj, 0);
+		//	obj.transform.parent = this.transform;
+		//	obj.transform.localRotation = Quaternion.Euler(0, 0, 0);
+		//	obj.GetComponent<Rigidbody>().isKinematic = true;
 
-			Debug.Log("holding and suction active");
+		//	Debug.Log("holding and suction active");
 
-			isHolding = true;
-			shouldDrop = false;
-		}
+		//	isHolding = true;
+		//	shouldDrop = false;
+		//}
 	}
 }
