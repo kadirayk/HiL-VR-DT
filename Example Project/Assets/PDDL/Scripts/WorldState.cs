@@ -9,9 +9,13 @@ using RosSharp.RosBridgeClient;
 using Assets.PDDL;
 using Assets.PDDL.Scripts;
 using System.Collections;
+using System.Net.Http;
+using UnityEngine.Networking;
+using Newtonsoft.Json.Linq;
 
 public class WorldState : MonoBehaviour, IListener, IProblemState
 {
+	private static readonly HttpClient client = new HttpClient();
 	List<GameObject> gameObjects = new List<GameObject>();
 	IList<GameObject> positions = new List<GameObject>();
 	private float tableHeight;
@@ -192,24 +196,73 @@ public class WorldState : MonoBehaviour, IListener, IProblemState
 		}
 	}
 
-	public void Solve() {
+	public void Solve()
+	{
 		isSolveActive = true;
 	}
 
-IEnumerator SolveCoroutine()
+	IEnumerator MakeSolveRequest(System.Action<List<string>> callback = null) {
+		string problem = createPDDLProblem(); // "(define (problem dobot01)\n(:domain BLOCKS)\n(:objects cube_red_0 cube_blue_0 cube_yellow_0 - block\nposyellow posred posblue - position)\n(:init (HANDEMPTY) (free posyellow)(free posred)(free posblue)(ontable cube_red_0)(ontable cube_blue_0)(ontable cube_yellow_0)(clear cube_red_0)(clear cube_blue_0)(clear cube_yellow_0))\n(:goal (and (at cube_yellow_0 posyellow)(at cube_red_0 posred)(at cube_blue_0 posblue)(clear cube_red_0)(clear cube_blue_0)(clear cube_yellow_0)))\n)";
+		TextAsset file = Resources.Load("pddl-domain") as TextAsset;
+		string domain = file.text.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+		problem = problem.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+
+		string json = "{ \"domain\":\"" + domain + "\", \"problem\":\"" + problem + "\"}";
+		Debug.Log(json);
+		var uwr = new UnityWebRequest("http://solver.planning.domains/solve", "POST");
+		byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(json);
+		uwr.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
+		uwr.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+		uwr.SetRequestHeader("Content-Type", "application/json");
+
+		//Send the request then wait here until it returns
+		yield return uwr.SendWebRequest();
+
+		if (uwr.isNetworkError)
+		{
+			Debug.Log("Error While Sending: " + uwr.error);
+			callback.Invoke(null);
+		}
+		else
+		{
+			var jsonObject = JObject.Parse(uwr.downloadHandler.text);
+			var plan = jsonObject["result"]["plan"];
+			List<string> solution = new List<string>();
+			foreach (var action in plan)
+			{
+				solution.Add(action["name"].ToString());
+			}
+			callback.Invoke(solution);
+
+		}
+	}
+
+	IEnumerator SolveCoroutine()
 	{
 		mr.SetAutomatedMode(true);
 		uiStatus.setStatus("Solving");
-		string problem = createPDDLProblem();
-		System.IO.File.WriteAllText(WORK_PATH + @"PDDLSolver\problem.pddl", problem);
-		//CollisionDetection cd = GameObject.FindObjectOfType<CollisionDetection>();
-		//cd.AutomatedMode(true);
+		List<string> lines;
+		StartCoroutine(MakeSolveRequest(solution=>
+		{
+			lines = solution;
+			solutionLines = new Queue<string>();
+			StringBuilder stringBuilder = new StringBuilder();
+			foreach (string line in lines)
+			{
+				solutionLines.Enqueue(line);
+				Debug.Log(line);
+				stringBuilder.Append(line).Append("\n");
+				//divideActions(line);
+				//MovementRecorder mr = GameObject.FindObjectOfType<MovementRecorder>();
+				//mr.SetRecordedMovements(plannedMovements);
+				//mr.Replay();
+			}
+			uiStatus.setSolution(stringBuilder.ToString());
+			shouldSolve = true;
+		}));
+		yield return null;
 
-		//foreach (GameObject block in gameObjects)
-		//{
-		//	block.GetComponent<Rigidbody>().useGravity = false;
-		//}
-
+		/*
 		DateTime modification = System.IO.File.GetLastWriteTime(WORK_PATH + @"PDDLSolver\solution.txt");
 		System.Diagnostics.Process process = new System.Diagnostics.Process();
 		var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -243,6 +296,8 @@ IEnumerator SolveCoroutine()
 		//Debug.Log("redcube1 init x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
 		solutionLines = new Queue<string>();
 		StringBuilder stringBuilder = new StringBuilder();
+		*/
+		/*
 		foreach (string line in lines)
 		{
 			solutionLines.Enqueue(line);
@@ -257,6 +312,7 @@ IEnumerator SolveCoroutine()
 		shouldSolve = true;
 		//cube = GameObject.Find("RedCube1");
 		//Debug.Log("redcube1 end x:" + cube.transform.position.x + " y:" + cube.transform.position.y + " z:" + cube.transform.position.z);
+		*/
 	}
 
 	private async void waiter()
@@ -756,7 +812,7 @@ IEnumerator SolveCoroutine()
 		//Debug.Log("A:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(260,100,-15))));
 		//Debug.Log("B:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -15))));
 		//Debug.Log("C:" + UnityUtil.PositionToString(UnityUtil.DobotArmToVR(new Vector3(155, 100, -70))));
-		uiStatus =  GameObject.FindObjectOfType<UIStatus>();
+		uiStatus = GameObject.FindObjectOfType<UIStatus>();
 		actuator = GameObject.FindObjectOfType<Actuator>();
 		positions = GameObject.FindGameObjectsWithTag("Position");
 		foreach (GameObject pos in positions)
@@ -826,7 +882,8 @@ IEnumerator SolveCoroutine()
 			calcTime = false;
 		}
 
-		if (isSolveActive) {
+		if (isSolveActive)
+		{
 			StartCoroutine(SolveCoroutine());
 			isSolveActive = false;
 		}

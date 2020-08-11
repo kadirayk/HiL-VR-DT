@@ -62,6 +62,7 @@ namespace RosSharp.RosBridgeClient
 
 		public void SetPTPCmd(byte ptpMode, float x, float y, float z, float r, bool isQueued)
 		{
+			Debug.Log("calling SetPTPCmd");
 			SetPTPCmdRequest request = new SetPTPCmdRequest(ptpMode, x, y, z, r, isQueued);
 			rosSocket.CallService<SetPTPCmdRequest, SetPTPCmdResponse>("/Dobot_Loader/SetPTPCmd", SetPTPCmdResponseHandler, request);
 			setPTPCmdReceived = false;

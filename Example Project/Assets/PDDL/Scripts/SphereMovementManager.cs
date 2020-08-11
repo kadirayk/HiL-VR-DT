@@ -18,7 +18,7 @@ public class SphereMovementManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-		if (Vector3.Distance(endEffector.transform.position, transform.position)>0.015)
+		if (Vector3.Distance(endEffector.transform.position, transform.position)>0.05)
 		{
 			transform.position = endEffector.transform.position;
 		}

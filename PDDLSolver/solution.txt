@@ -1,0 +1,6 @@
+(pick-up cube_red_0)
+(place cube_red_0 posred)
+(pick-up cube_blue_0)
+(place cube_blue_0 posblue)
+(pick-up cube_yellow_0)
+(place cube_yellow_0 posyellow)

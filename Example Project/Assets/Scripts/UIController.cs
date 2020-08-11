@@ -2,25 +2,19 @@
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using RosSharp.RosBridgeClient;
+using System.Collections.Generic;
 
-
-public enum ManualState
+public enum ButtonActivation
 {
-	robotActing,
-	init,
-	recorded,
-	stopped,
-	replayed,
-	executed
-}
-
-public enum AutomatedState
-{
-	robotActing,
-	init,
-	goalRegistered,
-	solved,
-	executed
+	manual_record,
+	manual_stop,
+	manual_replay,
+	auto_show,
+	auto_registerGoal,
+	auto_solve,
+	execute,
+	restart
 }
 
 public class UIController : MonoBehaviour
@@ -48,6 +42,8 @@ public class UIController : MonoBehaviour
 	private bool isManualActive = true;
 	private bool showPDDLDetails = false;
 	UIStatus uiStatus;
+	public GameObject Sphere;
+	HintsManager hintsManager;
 
 
 	GameObject manualPanel;
@@ -59,12 +55,16 @@ public class UIController : MonoBehaviour
 	EndEffectorCollisionController cd;
 	ModeManager modeManager;
 
-	ManualState manualState;
-	AutomatedState automatedState;
+	Dictionary<Button, Color> normalColors = new Dictionary<Button, Color>();
+
+	private Button buttonToHighLight;
+
+
 
 	void Start()
 	{
 		uiStatus = GameObject.FindObjectOfType<UIStatus>();
+		hintsManager = GameObject.FindObjectOfType<HintsManager>();
 		manualPanel = GameObject.Find("ManualPanel");
 		automatedPanel = GameObject.Find("AutomatedPanel");
 		debugPanel = GameObject.Find("DebugPanel");
@@ -88,24 +88,28 @@ public class UIController : MonoBehaviour
 		worldState = GameObject.FindObjectOfType<WorldState>();
 		cd = GameObject.FindObjectOfType<EndEffectorCollisionController>();
 		modeManager = GameObject.FindObjectOfType<ModeManager>();
-		manualState = ManualState.init;
-		automatedState = AutomatedState.init;
-	}
-
-	void Update()
-	{
-		//automated vs manual switch
-		manualPanel.SetActive(isManualActive);
-		automatedPanel.SetActive(!isManualActive);
+		
 		if (isManualActive)
 		{
 			modeManager.SetMode(Mode.manual);
+			buttonToHighLight = recordButton;
+			hintsManager.setStatus(HintsManager.MANUAL_INITIAL);
 		}
 		else
 		{
 			modeManager.SetMode(Mode.automated);
+			buttonToHighLight = registerGoalButton;
+			hintsManager.setStatus(HintsManager.AUTO_INITIAL);
 		}
-		
+	}
+
+	void Update()
+	{
+		highLightButton();
+		//automated vs manual switch
+		manualPanel.SetActive(isManualActive);
+		automatedPanel.SetActive(!isManualActive);
+
 
 		// enable disable PDDL details
 		if (showPDDLDetails)
@@ -140,11 +144,17 @@ public class UIController : MonoBehaviour
 	void ManualButtonOnClick()
 	{
 		isManualActive = true;
+		buttonToHighLight = recordButton;
+		modeManager.SetMode(Mode.manual);
+		hintsManager.setStatus(HintsManager.MANUAL_INITIAL);
 	}
 
 	void AutomatedButtonOnClick()
 	{
 		isManualActive = false;
+		buttonToHighLight = registerGoalButton;
+		modeManager.SetMode(Mode.automated);
+		hintsManager.setStatus(HintsManager.AUTO_INITIAL);
 	}
 
 	void RecordButtonOnClick()
@@ -152,19 +162,28 @@ public class UIController : MonoBehaviour
 		uiStatus.setStatus("Recording Movements");
 		worldState.Initial();
 		movementRecorder.StartRecording();
+		buttonToHighLight = stopButton;
+		Sphere.SetActive(true);
+		hintsManager.setStatus(HintsManager.RECORDING_PRESSED);
+
 	}
 
 	void StopButtonOnClick()
 	{
 		uiStatus.setStatus("Recording Stopped");
 		movementRecorder.StopRecording();
+		buttonToHighLight = replayButton;
+		hintsManager.setStatus(HintsManager.STOP_PRESSED);
 	}
 
 	void ReplayButtonOnClick()
 	{
 		worldState.ToInitialPosition();
 		uiStatus.setStatus("Replaying Movements");
+		Sphere.SetActive(false);
 		movementRecorder.Replay();
+		buttonToHighLight = executeButton;
+		hintsManager.setStatus(HintsManager.REPLAY_PRESSED);
 	}
 
 
@@ -173,10 +192,19 @@ public class UIController : MonoBehaviour
 		if (suctionButton.GetComponentInChildren<Text>().text.Equals("Stop Suction"))
 		{
 			cd.setSuction(false);
+			hintsManager.setStatus(HintsManager.STOP_SUCTION_PRESSED);
 		}
 		else
 		{
 			cd.setSuction(true);
+			if (!cd.isCollidingWithCube())
+			{
+				hintsManager.setStatus(HintsManager.SUCTION_WITHOUT_TOUCH);
+			}
+			else
+			{
+				hintsManager.setStatus(HintsManager.HOLDING_CUBE);
+			}
 		}
 	}
 
@@ -195,16 +223,21 @@ public class UIController : MonoBehaviour
 	void RegisterGoalButtonOnClick()
 	{
 		worldState.Goal();
+		buttonToHighLight = solveButton;
+		hintsManager.setStatus(HintsManager.AUTO_REGISTER_PRESSED);
 	}
 
 	void SolveButtonOnClick()
 	{
 		worldState.Solve();
+		buttonToHighLight = executeButton;
+		hintsManager.setStatus(HintsManager.SOLVE_PRESSED);
 	}
 
 	void RestartButtonOnClick()
 	{
 		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+		Sphere.SetActive(true);
 	}
 
 	void ExecuteButtonOnClick()
@@ -212,12 +245,61 @@ public class UIController : MonoBehaviour
 		if (isManualActive)
 		{
 			movementRecorder.Execute();
+			Debug.Log("manual active");
 		}
 		else
 		{
 			worldState.Execute();
+			Debug.Log("automated active");
 		}
-
+		Sphere.SetActive(false);
 		uiStatus.setStatus("Executing");
+		hintsManager.setStatus(HintsManager.EXECUTE_PRESSED);
+	}
+
+	private void highLightButton()
+	{
+		if (buttonToHighLight != null)
+		{
+			ColorBlock colors = buttonToHighLight.colors;
+			Color norm = colors.normalColor;
+			float H, S, V;
+			Color.RGBToHSV(norm, out H, out S, out V);
+			S = Mathf.PingPong(Time.time, 0.5f);
+			norm = Color.HSVToRGB(H, S, V);
+			colors.normalColor = norm;
+			buttonToHighLight.colors = colors;
+
+			if (!buttonToHighLight.name.Equals(recordButton.name)) {
+				unHighlightButton(recordButton);
+			}
+			if (!buttonToHighLight.name.Equals(stopButton.name))
+			{
+				unHighlightButton(stopButton);
+			}
+			if (!buttonToHighLight.name.Equals(replayButton.name))
+			{
+				unHighlightButton(replayButton);
+			}
+			if (!buttonToHighLight.name.Equals(registerGoalButton.name))
+			{
+				unHighlightButton(registerGoalButton);
+			}
+			if (!buttonToHighLight.name.Equals(solveButton.name))
+			{
+				unHighlightButton(solveButton);
+			}
+			if (!buttonToHighLight.name.Equals(executeButton.name))
+			{
+				unHighlightButton(executeButton);
+			}
+		}
+	}
+
+	private void unHighlightButton(Button b)
+	{
+		ColorBlock colors = b.colors;
+		colors.normalColor = Color.white;
+		b.colors = colors;
 	}
 }

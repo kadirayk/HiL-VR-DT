@@ -15,6 +15,8 @@ namespace Assets.PDDL.Scripts
 
 		int timeout = 50; // 5 sec
 
+		bool codeGenerate = false;
+
 		Queue<KeyValuePair<string, Vector3>> commands;
 
 		public void executeCommands(Queue<KeyValuePair<string, Vector3>> com) {
@@ -32,174 +34,194 @@ namespace Assets.PDDL.Scripts
 
 		IEnumerator executeCommandsCoroutine()
 		{
+			ImageSubscriber imgSub = GameObject.FindObjectOfType<ImageSubscriber>();
+			imgSub.StartImageUpdate();
+
+			StringBuilder str = new StringBuilder();
 			while (commands.Count > 0)
 			{
-				KeyValuePair<string, Vector3> command = commands.Dequeue();
-				if (command.Key.Equals("pick-up"))
+				if (codeGenerate)
 				{
-					ServiceCaller sc = ServiceCaller.getInstance();
-					Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.01f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					Vector3 targetPose = sc.Pose();
-					int timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.01f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					sc.SetEndEffectorSuctionCup(true);
-					sc.GetEndEffectorSuctionCup();
-					bool suction = false;
-					timeCounter = 0;
-					while (!suction && timeCounter < timeout )
-					{
-						sc.GetEndEffectorSuctionCup();
-						yield return new WaitForSeconds(0.1f);
-						suction = sc.GetSuction();
-						timeCounter++;
-					}
-
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.02f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-				}else if (command.Key.Equals("place"))
-				{
-					ServiceCaller sc = ServiceCaller.getInstance();
-					Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.02f, 0));
-					Debug.Log("place target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					Vector3 targetPose = sc.Pose();
-					int timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.02f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					sc.SetEndEffectorSuctionCup(false);
-					sc.GetEndEffectorSuctionCup();
-					bool suction = true;
-					timeCounter = 0;
-					while (suction && timeCounter < timeout)
-					{
-						sc.GetEndEffectorSuctionCup();
-						yield return new WaitForSeconds(0.1f);
-						suction = sc.GetSuction();
-						timeCounter++;
-					}
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.03f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
-						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
+					KeyValuePair<string, Vector3> command = commands.Dequeue();
+					str.Append(command.Key + "(" + command.Value.x + ", " + command.Value.y + ", " + command.Value.z + ")");
+					str.Append("\n");
 				}
-				else if (command.Key.Equals("stack"))
+				else
 				{
-					ServiceCaller sc = ServiceCaller.getInstance();
-					Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.02f, 0));
-					Debug.Log("stack target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					Vector3 targetPose = sc.Pose();
-					int timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+
+					KeyValuePair<string, Vector3> command = commands.Dequeue();
+					if (command.Key.Equals("pick-up"))
 					{
+						ServiceCaller sc = ServiceCaller.getInstance();
+						Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.01f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
 						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
-						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.02f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
+						Vector3 targetPose = sc.Pose();
+						int timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.01f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
 						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
-						timeCounter++;
-					}
-					sc.SetEndEffectorSuctionCup(false);
-					sc.GetEndEffectorSuctionCup();
-					bool suction = true;
-					timeCounter = 0;
-					while (suction && timeCounter < timeout)
-					{
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						sc.SetEndEffectorSuctionCup(true);
 						sc.GetEndEffectorSuctionCup();
-						yield return new WaitForSeconds(0.1f);
-						suction = sc.GetSuction();
-						timeCounter++;
-					}
-					dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.03f, 0));
-					Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
-					sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
-					sc.GetPose();
-					targetPose = sc.Pose();
-					timeCounter = 0;
-					while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
-					{
+						bool suction = false;
+						timeCounter = 0;
+						while (!suction && timeCounter < timeout)
+						{
+							sc.GetEndEffectorSuctionCup();
+							yield return new WaitForSeconds(0.1f);
+							suction = sc.GetSuction();
+							timeCounter++;
+						}
+
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.06f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
 						sc.GetPose();
-						yield return new WaitForSeconds(0.1f);
 						targetPose = sc.Pose();
-						timeCounter++;
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+					}
+					else if (command.Key.Equals("place"))
+					{
+						ServiceCaller sc = ServiceCaller.getInstance();
+						Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.06f, 0));
+						Debug.Log("place target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						Vector3 targetPose = sc.Pose();
+						int timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.02f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						targetPose = sc.Pose();
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						sc.SetEndEffectorSuctionCup(false);
+						sc.GetEndEffectorSuctionCup();
+						bool suction = true;
+						timeCounter = 0;
+						while (suction && timeCounter < timeout)
+						{
+							sc.GetEndEffectorSuctionCup();
+							yield return new WaitForSeconds(0.1f);
+							suction = sc.GetSuction();
+							timeCounter++;
+						}
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.06f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						targetPose = sc.Pose();
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+					}
+					else if (command.Key.Equals("stack"))
+					{
+						ServiceCaller sc = ServiceCaller.getInstance();
+						Vector3 dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.06f, 0));
+						Debug.Log("stack target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						Vector3 targetPose = sc.Pose();
+						int timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, -0.02f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						targetPose = sc.Pose();
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
+						sc.SetEndEffectorSuctionCup(false);
+						sc.GetEndEffectorSuctionCup();
+						bool suction = true;
+						timeCounter = 0;
+						while (suction && timeCounter < timeout)
+						{
+							sc.GetEndEffectorSuctionCup();
+							yield return new WaitForSeconds(0.1f);
+							suction = sc.GetSuction();
+							timeCounter++;
+						}
+						dobotPose = UnityUtil.VRToDobotArm(command.Value + new Vector3(0, +0.06f, 0));
+						Debug.Log("pickup target:" + UnityUtil.PositionToString(dobotPose));
+						sc.SetPTPCmd(1, dobotPose.x, dobotPose.y, dobotPose.z, 0, false);
+						sc.GetPose();
+						targetPose = sc.Pose();
+						timeCounter = 0;
+						while (!isAtPosition(targetPose, dobotPose) && timeCounter < timeout)
+						{
+							sc.GetPose();
+							yield return new WaitForSeconds(0.1f);
+							targetPose = sc.Pose();
+							timeCounter++;
+						}
 					}
 				}
 			}
+
+			Debug.Log("Code Generation:");
+			Debug.Log(str.ToString());
+
 			UIStatus uiStatus = GameObject.FindObjectOfType<UIStatus>();
 			uiStatus.setStatus("Executing Done");
+			imgSub.StopImageUpdate();
 		}
 
 		private bool isAtPosition(Vector3 v1, Vector3 v2)

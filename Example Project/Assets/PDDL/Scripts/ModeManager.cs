@@ -21,6 +21,8 @@ public class ModeManager : MonoBehaviour
 
 	Dictionary<GameObject, OVRGrabbable> gameObjToGrabbable = new Dictionary<GameObject, OVRGrabbable>();
 
+	private bool modeUpdated = false;
+
 	void Start()
 	{
 
@@ -28,8 +30,29 @@ public class ModeManager : MonoBehaviour
 
 	void Update()
 	{
-		updateForMode();
+		if (!modeUpdated)
+		{
+			updateForMode();
+		}
+
+		if (this.mode == Mode.manual)
+		{
+			foreach (GameObject obj in gameObjects)
+			{
+				Destroy(obj.GetComponent<OVRGrabbable>());
+
+			}
+		}
+		else
+		{
+			foreach (GameObject obj in gameObjects)
+			{
+				obj.AddComponent<OVRGrabbable>();
+			}
+		}
 	}
+
+
 
 	private void updateForMode()
 	{
@@ -50,11 +73,17 @@ public class ModeManager : MonoBehaviour
 				obj.AddComponent<OVRGrabbable>();
 			}
 		}
+		modeUpdated = true;
 	}
 
 	public void SetMode(Mode mode)
 	{
 		this.mode = mode;
+		modeUpdated = false;
+	}
+	public Mode GetMode()
+	{
+		return this.mode;
 	}
 
 	public void Register(GameObject obj)

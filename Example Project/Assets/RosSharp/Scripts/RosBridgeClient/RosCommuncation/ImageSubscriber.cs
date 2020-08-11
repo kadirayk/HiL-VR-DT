@@ -26,6 +26,19 @@ namespace RosSharp.RosBridgeClient
         private byte[] imageData;
         private bool isMessageReceived;
 
+		private bool shouldUpdate;
+		private bool initalUpdateDone = false;
+
+		public void StartImageUpdate()
+		{
+			shouldUpdate = true;
+		}
+
+		public void StopImageUpdate()
+		{
+			shouldUpdate = false;
+		}
+
         protected override void Start()
         {
 			base.Start();
@@ -34,19 +47,29 @@ namespace RosSharp.RosBridgeClient
         }
         private void Update()
         {
-            if (isMessageReceived)
-                ProcessMessage();
+			if (isMessageReceived && !initalUpdateDone)
+			{
+				ProcessMessage();
+				initalUpdateDone = true;
+			}
+
+			if (isMessageReceived && shouldUpdate)
+			{
+				ProcessMessage();
+			}
         }
 
         protected override void ReceiveMessage(MessageTypes.Sensor.CompressedImage compressedImage)
         {
-            imageData = compressedImage.data;
+			//Debug.Log("imageData received");
+			imageData = compressedImage.data;
             isMessageReceived = true;
         }
 
         private void ProcessMessage()
         {
-            texture2D.LoadImage(imageData);
+			//Debug.Log("imageData process");
+			texture2D.LoadImage(imageData);
             texture2D.Apply();
             meshRenderer.material.SetTexture("_MainTex", texture2D);
             isMessageReceived = false;

@@ -37,6 +37,7 @@ namespace RosSharp.RosBridgeClient
 
         public void Awake()
         {
+			Debug.Log("RosConnector Awake");
             IsConnected = new ManualResetEvent(false);
             new Thread(ConnectAndWait).Start();
         }

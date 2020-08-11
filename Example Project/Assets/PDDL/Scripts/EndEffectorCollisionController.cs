@@ -16,6 +16,17 @@ public class EndEffectorCollisionController : MonoBehaviour
 
 	ValueTuple<GameObject, int> frameCountToDropObject;
 
+	private bool isCollisionWithCube = false;
+
+	public bool isHoldingCube()
+	{
+		return isHolding;
+	}
+
+	public bool isCollidingWithCube()
+	{
+		return isCollisionWithCube;
+	}
 	public void setSuction(bool suct)
 	{
 		suctionActive = suct;
@@ -91,14 +102,19 @@ public class EndEffectorCollisionController : MonoBehaviour
 		GameObject obj = other.gameObject;
 		if (obj.name.StartsWith("cube_"))
 		{
+			isCollisionWithCube = true;
 			UnityUtil.highLightStart(obj);
 			StartCoroutine(UnityUtil.HapticFeedback(0.1f));
 
 		}
+	}
 
+	private void OnTriggerStay(Collider other)
+	{
 		//Debug.Log("End Effector Trigger enter");
 		if (suctionActive)
 		{
+			GameObject obj = other.gameObject;
 			if (obj.name.StartsWith("cube_"))
 			{
 				//Debug.Log("collision obj:" + obj.name);
@@ -115,11 +131,11 @@ public class EndEffectorCollisionController : MonoBehaviour
 
 	private void OnTriggerExit(Collider other)
 	{
-
 		GameObject obj = other.gameObject;
 		if (obj.name.StartsWith("cube_"))
 		{
 			UnityUtil.highLightEnd(obj);
+			isCollisionWithCube = false;
 		}
 
 	}
