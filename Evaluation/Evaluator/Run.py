@@ -34,10 +34,18 @@ file_paths_for_manual = [
     r'C:\Users\Kadiray\Thesis\VR\Evaluation\AutoQuestLogs\14_test\manual\14_test_manual.log',
 ]
 
-print("automated")
+print("automated task completion time")
 for file_path in file_paths_for_automated:
     calculate_automated_completion_time(file_path)
 
-print("manual")
+print("manual task completion time")
 for file_path in file_paths_for_manual:
     calculate_manual_completion_time(file_path)
+
+print("automated total time")
+for file_path in file_paths_for_automated:
+    calculate_total_duration(file_path)
+
+print("manual total time")
+for file_path in file_paths_for_manual:
+    calculate_total_duration(file_path)

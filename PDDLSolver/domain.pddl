@@ -2,23 +2,13 @@
   (:requirements :strips :typing)
   (:types block position)
   (:predicates (on ?x - block ?y - block)
-           (at ?x - block ?p - position)
-           (free ?p - position)
 	       (ontable ?x - block)
 	       (clear ?x - block)
 	       (handempty)
 	       (holding ?x - block)
+		   (at ?x - block ?p - position)
+           (free ?p - position)
 	       )
-
-  (:action place
-	     :parameters (?x - block ?p - position)
-	     :precondition (and (holding ?x) (free ?p))
-	     :effect
-	     (and (not (holding ?x))
-		   (not (free ?p))
-		   (clear ?x)
-		   (handempty)
-		   (at ?x ?p)))
 	     
   (:action pick-up
 	     :parameters (?x - block)
@@ -54,4 +44,26 @@
 		   (clear ?y)
 		   (not (clear ?x))
 		   (not (handempty))
-		   (not (on ?x ?y)))))
+		   (not (on ?x ?y))))
+		   
+  (:action place
+	     :parameters (?x - block ?p - position)
+	     :precondition (and (holding ?x) (free ?p))
+	     :effect
+	     (and (not (holding ?x))
+		   (not (free ?p))
+		   (clear ?x)
+		   (handempty)
+		   (at ?x ?p)))
+		   
+  (:action pick-from-pos
+	     :parameters (?x - block ?p - position)
+	     :precondition (and (clear ?x) (at ?x ?p) (handempty))
+	     :effect
+	     (and (not (at ?x ?p))
+		   (not (clear ?x))
+		   (not (handempty))
+		   (free ?p)
+		   (holding ?x)))		   
+		   
+		   )

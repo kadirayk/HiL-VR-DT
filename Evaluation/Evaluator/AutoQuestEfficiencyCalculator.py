@@ -111,3 +111,26 @@ def calculate_manual_completion_time(file_path):
     start_datetime = datetime.datetime(1, 1, 1) + datetime.timedelta(microseconds=int(start_timestamp) / 10)
     end_datetime = datetime.datetime(1, 1, 1) + datetime.timedelta(microseconds=int(end_timestamp) / 10)
     print((end_datetime - start_datetime).total_seconds())
+
+
+def calculate_total_duration(file_path):
+    read_xml_doc(file_path)
+    start_timestamp = None
+    end_timestamp = None
+    events = get_events()
+    first_event = events[1]
+    last_event = events[len(events) - 1]
+
+    params = first_event.getElementsByTagName('param')
+    for p in params:
+        if p.getAttribute('name') == 'timestamp':
+            start_timestamp = p.getAttribute('value')
+
+    params = last_event.getElementsByTagName('param')
+    for p in params:
+        if p.getAttribute('name') == 'timestamp':
+            end_timestamp = p.getAttribute('value')
+
+    start_datetime = datetime.datetime(1, 1, 1) + datetime.timedelta(microseconds=int(start_timestamp) / 10)
+    end_datetime = datetime.datetime(1, 1, 1) + datetime.timedelta(microseconds=int(end_timestamp) / 10)
+    print((end_datetime - start_datetime).total_seconds())
